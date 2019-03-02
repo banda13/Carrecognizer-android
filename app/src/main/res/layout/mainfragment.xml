@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/constraintLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity$PlaceholderFragment">
+
+    <LinearLayout
+        android:weightSum="10"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:id="@+id/camera_fragment_container"
+            android:layout_gravity="top"
+            android:layout_weight="8"
+            android:layout_height="0dp"
+            android:layout_width="match_parent" />
+
+        <FrameLayout
+            android:id="@+id/camera_navigation_container"
+            android:layout_gravity="bottom"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:layout_width="match_parent" />
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

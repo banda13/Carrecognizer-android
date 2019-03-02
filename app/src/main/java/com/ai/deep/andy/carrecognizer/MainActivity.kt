@@ -13,6 +13,10 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import com.ai.deep.andy.carrecognizer.fragments.CameraFragment
+import com.ai.deep.andy.carrecognizer.fragments.ClassificationListFragment
+import com.ai.deep.andy.carrecognizer.fragments.MainFragment
+import com.ai.deep.andy.carrecognizer.fragments.UserFragment
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_main.view.*
@@ -40,6 +44,8 @@ class MainActivity : AppCompatActivity() {
 
         // Set up the ViewPager with the sections adapter.
         container.adapter = mSectionsPagerAdapter
+        container.currentItem = 1;
+
 
         fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -76,9 +82,20 @@ class MainActivity : AppCompatActivity() {
     inner class SectionsPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
 
         override fun getItem(position: Int): Fragment {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1)
+            when(position){
+                0 -> {
+                    return ClassificationListFragment.newInstance(1);
+                }
+                1 -> {
+                    return MainFragment.newInstance("Camera", "Camera2");
+                }
+                2 -> {
+                    return UserFragment.newInstance("User", "Fragment");
+                }
+                else -> {
+                    return MainFragment.newInstance("Camera", "Fragment");
+                }
+            }
         }
 
         override fun getCount(): Int {
