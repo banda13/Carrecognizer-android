@@ -2,11 +2,21 @@ package com.ai.deep.andy.carrecognizer.camera
 
 import android.content.Context
 import android.hardware.Camera
+import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
+import android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+import android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO
 import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import com.ai.deep.andy.carrecognizer.utils.Logger
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 /** A basic Camera preview class */
 class CameraPreview(

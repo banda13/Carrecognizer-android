@@ -14,18 +14,36 @@
 
     <FrameLayout
         android:id="@+id/camera_preview"
-        android:background="@color/colorAccent"
         android:layout_width="match_parent"
         android:layout_weight="8"
         android:layout_height="0dp" />
 
         <LinearLayout
-            android:layout_weight="2"
             android:layout_width="match_parent"
-            android:layout_height="0dp">
+            android:gravity="center_horizontal"
+            android:layout_height="0dp"
+            android:layout_weight="3"
+            android:orientation="horizontal">
 
             <android.support.design.widget.FloatingActionButton
+                android:id="@+id/settings_button"
+                android:src="@drawable/ic_action_setting"
+                android:layout_margin="@dimen/fab_margin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/capture_image"
                 android:src="@drawable/ic_action_camera"
+                android:layout_margin="@dimen/fab_margin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/gallery_button"
+                android:src="@drawable/ic_action_gallery"
+                android:layout_margin="@dimen/fab_margin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 

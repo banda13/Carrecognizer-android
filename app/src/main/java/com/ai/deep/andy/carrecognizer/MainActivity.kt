@@ -13,24 +13,33 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import com.ai.deep.andy.carrecognizer.fragments.CameraFragment
-import com.ai.deep.andy.carrecognizer.fragments.ClassificationListFragment
-import com.ai.deep.andy.carrecognizer.fragments.MainFragment
-import com.ai.deep.andy.carrecognizer.fragments.UserFragment
+import android.widget.Toast
+import com.ai.deep.andy.carrecognizer.fragments.*
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_main.view.*
+import java.io.File
 
-class MainActivity : AppCompatActivity() {
+private const val CAMERA_FRAGMENT_TAG = "CameraFragment"
+private const val CLASSIFY_FRAGMENT_TAG = "ClassifyFragment"
 
-    /**
-     * The [android.support.v4.view.PagerAdapter] that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * [android.support.v4.app.FragmentStatePagerAdapter].
-     */
+class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInteraction, ClassifyFragment.OnClassifyFragmentListener {
+
+    override fun goBackToCamera() {
+        val fragment: Fragment? = supportFragmentManager?.findFragmentByTag("android:switcher:" + R.id.container + ":" + container.currentItem)
+        if(container?.currentItem == 1 && fragment != null){
+            (fragment as MainFragment).changeToCameraFragment()
+        }
+    }
+
+    override fun pictureTaken(f: File) {
+        val fragment: Fragment? = supportFragmentManager?.findFragmentByTag("android:switcher:" + R.id.container + ":" + container.currentItem)
+        if(container?.currentItem == 1 && fragment != null){
+            (fragment as MainFragment).changeToClassifyFragment(f)
+        }
+    }
+
+
     private var mSectionsPagerAdapter: SectionsPagerAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,13 +53,13 @@ class MainActivity : AppCompatActivity() {
 
         // Set up the ViewPager with the sections adapter.
         container.adapter = mSectionsPagerAdapter
-        container.currentItem = 1;
+        container.currentItem = 1
 
 
-        fab.setOnClickListener { view ->
+        /*fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show()
-        }
+        }*/
 
     }
 
@@ -74,20 +83,15 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-
-    /**
-     * A [FragmentPagerAdapter] that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
     inner class SectionsPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
 
         override fun getItem(position: Int): Fragment {
             when(position){
                 0 -> {
-                    return ClassificationListFragment.newInstance(1);
+                    return ClassificationListFragment.newInstance(1)
                 }
                 1 -> {
-                    return MainFragment.newInstance("Camera", "Camera2");
+                    return MainFragment.newInstance(CAMERA_FRAGMENT_TAG, CLASSIFY_FRAGMENT_TAG);
                 }
                 2 -> {
                     return UserFragment.newInstance("User", "Fragment");
@@ -99,41 +103,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun getCount(): Int {
-            // Show 3 total pages.
             return 3
-        }
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    class PlaceholderFragment : Fragment() {
-
-        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                                  savedInstanceState: Bundle?): View? {
-            val rootView = inflater.inflate(R.layout.fragment_main, container, false)
-            rootView.section_label.text = getString(R.string.section_format, arguments?.getInt(ARG_SECTION_NUMBER))
-            return rootView
-        }
-
-        companion object {
-            /**
-             * The fragment argument representing the section number for this
-             * fragment.
-             */
-            private val ARG_SECTION_NUMBER = "section_number"
-
-            /**
-             * Returns a new instance of this fragment for the given section
-             * number.
-             */
-            fun newInstance(sectionNumber: Int): PlaceholderFragment {
-                val fragment = PlaceholderFragment()
-                val args = Bundle()
-                args.putInt(ARG_SECTION_NUMBER, sectionNumber)
-                fragment.arguments = args
-                return fragment
-            }
         }
     }
 }

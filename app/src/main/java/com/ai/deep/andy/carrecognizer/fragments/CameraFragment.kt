@@ -6,6 +6,10 @@ import android.graphics.Rect
 import android.hardware.Camera
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
+import android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,8 +20,17 @@ import android.view.ViewGroup
 import com.ai.deep.andy.carrecognizer.R
 import android.widget.FrameLayout
 import android.view.SurfaceView
+import android.widget.Button
+import android.widget.Toast
 import com.ai.deep.andy.carrecognizer.camera.CameraPreview
+import com.ai.deep.andy.carrecognizer.utils.Logger
 import kotlinx.android.synthetic.main.fragment_camera.*
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -28,14 +41,35 @@ private const val ARG_PARAM2 = "param2"
 
 class CameraFragment : Fragment() {
 
+    private var safeToTakePicture = true
     private var mCamera: Camera? = null
     private var mPreview: CameraPreview? = null
+    private val mPicture = Camera.PictureCallback { data, _ ->
+        val pictureFile: File = getOutputMediaFile(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE) ?: run {
+            Log.d(Logger.LOGTAG, ("Error creating media file, check storage permissions"))
+            safeToTakePicture = true
+            return@PictureCallback
+        }
+
+        try {
+            val fos = FileOutputStream(pictureFile)
+            fos.write(data)
+            fos.close()
+
+            listener?.pictureTaken(pictureFile)
+        } catch (e: FileNotFoundException) {
+            Log.d(Logger.LOGTAG, "File not found: ${e.message}")
+        } catch (e: IOException) {
+            Log.d(Logger.LOGTAG, "Error accessing file: ${e.message}")
+        }
+        safeToTakePicture = true
+    }
 
 
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
-    private var listener: OnFragmentInteractionListener? = null
+    private var listener: OnCameraFragmentInteraction? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,23 +84,33 @@ class CameraFragment : Fragment() {
         // Inflate the layout for this fragment
         val v =  inflater.inflate(R.layout.fragment_camera, container, false)
         mPreview?.also {
+            if(it.parent != null){
+                (it.parent as ViewGroup).removeView(it)
+            }
             v.findViewById<FrameLayout>(R.id.camera_preview).addView(it)
         }
-        return v
-    }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
-        listener?.onFragmentInteraction(uri)
+        val captureButton: FloatingActionButton = v.findViewById(R.id.capture_image)
+        captureButton.setOnClickListener {
+            // get an image from the camera
+            if (safeToTakePicture) {
+                mCamera?.takePicture(null, null, mPicture)
+                safeToTakePicture = false;
+            }
+            else{
+                Toast.makeText(context, "Its not safe to create picture now!", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        return v
     }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (context is OnFragmentInteractionListener) {
+        if (context is OnCameraFragmentInteraction) {
             listener = context
         } else {
-            //throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
-            //TODO its not ok, implement is
+            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }
 
         mCamera = getCameraInstance()
@@ -75,18 +119,18 @@ class CameraFragment : Fragment() {
             // Create our Preview view
             CameraPreview(context, it)
         }
-
+        this.safeToTakePicture = true
     }
 
     override fun onDetach() {
         super.onDetach()
         listener = null
+        releaseCamera()
     }
 
 
-    interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        fun onFragmentInteraction(uri: Uri)
+    interface OnCameraFragmentInteraction {
+        fun pictureTaken(f:  File)
     }
 
     fun getCameraInstance(): Camera? {
@@ -98,8 +142,47 @@ class CameraFragment : Fragment() {
         }
     }
 
+    private fun releaseCamera() {
+        mCamera?.release() // release the camera for other applications
+        mCamera = null
+    }
+
     private fun checkCameraHardware(context: Context): Boolean {
         return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)
+    }
+
+    private fun getOutputMediaFile(type: Int): File? {
+        // To be safe, you should check that the SDCard is mounted
+        // using Environment.getExternalStorageState() before doing this.
+
+        val mediaStorageDir = File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                "MyCameraApp"
+        )
+        // This location works best if you want the created images to be shared
+        // between applications and persist after your app has been uninstalled.
+
+        // Create the storage directory if it does not exist
+        mediaStorageDir.apply {
+            if (!exists()) {
+                if (!mkdirs()) {
+                    Log.d("MyCameraApp", "failed to create directory")
+                    return null
+                }
+            }
+        }
+
+        // Create a media file name
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        return when (type) {
+            MEDIA_TYPE_IMAGE -> {
+                File("${mediaStorageDir.path}${File.separator}IMG_$timeStamp.jpg")
+            }
+            MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO -> {
+                File("${mediaStorageDir.path}${File.separator}VID_$timeStamp.mp4")
+            }
+            else -> null
+        }
     }
 
     companion object {
