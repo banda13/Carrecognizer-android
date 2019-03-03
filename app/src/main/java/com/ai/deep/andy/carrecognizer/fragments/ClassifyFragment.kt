@@ -23,7 +23,7 @@ private const val ARG_PARAM2 = "param2"
 
 class ClassifyFragment : Fragment() {
 
-    private var imageFile: File? = null
+    private var imageBitmap: Bitmap? = null
     private var param1: String? = null
     private var param2: String? = null
     private var listener: OnClassifyFragmentListener? = null
@@ -36,8 +36,8 @@ class ClassifyFragment : Fragment() {
         }
     }
 
-    fun changeImageFile(image: File){
-        imageFile = image
+    fun changeImageFile(image: Bitmap){
+        imageBitmap = image
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -48,8 +48,7 @@ class ClassifyFragment : Fragment() {
         backButton.setOnClickListener {
             listener?.goBackToCamera()
         }
-        val imgBitmap = BitmapFactory.decodeFile(imageFile?.absolutePath)
-        v.findViewById<ImageView>(R.id.my_image_container).setImageBitmap(imgBitmap)
+        v.findViewById<ImageView>(R.id.my_image_container).setImageBitmap(imageBitmap)
         return v
     }
 

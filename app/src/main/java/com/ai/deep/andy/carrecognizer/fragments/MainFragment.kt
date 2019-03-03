@@ -1,6 +1,7 @@
 package com.ai.deep.andy.carrecognizer.fragments
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.Fragment
@@ -62,7 +63,7 @@ class MainFragment : Fragment() {
                 ?.commit()
     }
 
-    fun changeToClassifyFragment(f: File){
+    fun changeToClassifyFragment(f: Bitmap){
         activity?.supportFragmentManager?.beginTransaction()
                 ?.replace(R.id.fragment_container, classifyFragment, classifyTag)
                 ?.addToBackStack(null)

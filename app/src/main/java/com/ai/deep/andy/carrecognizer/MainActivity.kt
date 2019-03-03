@@ -1,5 +1,6 @@
 package com.ai.deep.andy.carrecognizer
 
+import android.app.Activity
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 
@@ -19,11 +20,28 @@ import com.ai.deep.andy.carrecognizer.fragments.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_main.view.*
 import java.io.File
+import android.content.Intent
+import android.provider.MediaStore
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Log
+import com.ai.deep.andy.carrecognizer.utils.Logger
+import java.io.IOException
+
 
 private const val CAMERA_FRAGMENT_TAG = "CameraFragment"
 private const val CLASSIFY_FRAGMENT_TAG = "ClassifyFragment"
 
+private const val PICK_IMAGE_REQUEST = 1
+
 class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInteraction, ClassifyFragment.OnClassifyFragmentListener {
+
+    override fun selectImageFromGallery() {
+        val intent = Intent()
+        intent.type = "image/*"
+        intent.action = Intent.ACTION_GET_CONTENT
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST)
+    }
 
     override fun goBackToCamera() {
         val fragment: Fragment? = supportFragmentManager?.findFragmentByTag("android:switcher:" + R.id.container + ":" + container.currentItem)
@@ -32,7 +50,15 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
         }
     }
 
-    override fun pictureTaken(f: File) {
+    override fun captureImageWithCamera(f: File) {
+        val fragment: Fragment? = supportFragmentManager?.findFragmentByTag("android:switcher:" + R.id.container + ":" + container.currentItem)
+        if(container?.currentItem == 1 && fragment != null){
+            val imgBitmap = BitmapFactory.decodeFile(f.absolutePath)
+            (fragment as MainFragment).changeToClassifyFragment(imgBitmap)
+        }
+    }
+
+    fun selectImageFromGallery(f: Bitmap){
         val fragment: Fragment? = supportFragmentManager?.findFragmentByTag("android:switcher:" + R.id.container + ":" + container.currentItem)
         if(container?.currentItem == 1 && fragment != null){
             (fragment as MainFragment).changeToClassifyFragment(f)
@@ -47,33 +73,20 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
         setContentView(R.layout.activity_main)
 
         setSupportActionBar(toolbar)
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
         mSectionsPagerAdapter = SectionsPagerAdapter(supportFragmentManager)
 
-        // Set up the ViewPager with the sections adapter.
         container.adapter = mSectionsPagerAdapter
         container.currentItem = 1
-
-
-        /*fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-        }*/
 
     }
 
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         val id = item.itemId
 
         if (id == R.id.action_settings) {
@@ -81,6 +94,23 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.data != null) {
+
+            val uri = data.data
+
+            try {
+                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
+                selectImageFromGallery(bitmap)
+            } catch (e: IOException) {
+                Log.e(Logger.LOGTAG, e.message)
+            }
+
+        }
     }
 
     inner class SectionsPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {

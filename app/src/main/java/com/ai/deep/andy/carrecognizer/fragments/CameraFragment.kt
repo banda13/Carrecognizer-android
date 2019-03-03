@@ -2,9 +2,7 @@ package com.ai.deep.andy.carrecognizer.fragments
 
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Rect
 import android.hardware.Camera
-import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -13,18 +11,15 @@ import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.Fragment
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.SurfaceHolder
 import android.view.View
 import android.view.ViewGroup
 
 import com.ai.deep.andy.carrecognizer.R
 import android.widget.FrameLayout
-import android.view.SurfaceView
-import android.widget.Button
 import android.widget.Toast
 import com.ai.deep.andy.carrecognizer.camera.CameraPreview
 import com.ai.deep.andy.carrecognizer.utils.Logger
-import kotlinx.android.synthetic.main.fragment_camera.*
+import kotlinx.android.synthetic.main.fragment_classification_list.*
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -56,7 +51,7 @@ class CameraFragment : Fragment() {
             fos.write(data)
             fos.close()
 
-            listener?.pictureTaken(pictureFile)
+            listener?.captureImageWithCamera(pictureFile)
         } catch (e: FileNotFoundException) {
             Log.d(Logger.LOGTAG, "File not found: ${e.message}")
         } catch (e: IOException) {
@@ -92,7 +87,6 @@ class CameraFragment : Fragment() {
 
         val captureButton: FloatingActionButton = v.findViewById(R.id.capture_image)
         captureButton.setOnClickListener {
-            // get an image from the camera
             if (safeToTakePicture) {
                 mCamera?.takePicture(null, null, mPicture)
                 safeToTakePicture = false;
@@ -100,6 +94,11 @@ class CameraFragment : Fragment() {
             else{
                 Toast.makeText(context, "Its not safe to create picture now!", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        val galleryButton :FloatingActionButton = v.findViewById(R.id.gallery_button)
+        galleryButton.setOnClickListener {
+            listener?.selectImageFromGallery()
         }
 
         return v
@@ -130,7 +129,8 @@ class CameraFragment : Fragment() {
 
 
     interface OnCameraFragmentInteraction {
-        fun pictureTaken(f:  File)
+        fun captureImageWithCamera(f:  File)
+        fun selectImageFromGallery()
     }
 
     fun getCameraInstance(): Camera? {
