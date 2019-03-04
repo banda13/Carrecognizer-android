@@ -26,10 +26,16 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.provider.Settings
+import android.service.autofill.RegexValidator
+import android.widget.Toast
 import com.ai.deep.andy.carrecognizer.model.User
+import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
+import com.ai.deep.andy.carrecognizer.services.users.LoginService
+import com.ai.deep.andy.carrecognizer.services.users.RegistrationService
 import com.orm.SugarRecord
 
 import kotlinx.android.synthetic.main.activity_login.*
+import org.json.JSONObject
 import java.util.*
 
 /**
@@ -376,8 +382,33 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                 return false
             }
 
-            val intent = Intent(context, MainActivity::class.java)
-            context.startActivity(intent)
+            RegistrationService(applicationContext, object : VolleyOnEventListener<JSONObject>{
+                override fun onSuccess(obj: JSONObject) {
+                    LoginService(applicationContext, object : VolleyOnEventListener<JSONObject>{
+                        override fun onSuccess(obj: JSONObject) {
+                            val intent = Intent(context, MainActivity::class.java)
+                            context.startActivity(intent)
+                        }
+
+                        override fun onFailure(e: Exception) {
+                            Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                        }
+                    }).login(mEmail, mPassword)
+                }
+
+                override fun onFailure(e: Exception) {
+                    LoginService(applicationContext, object : VolleyOnEventListener<JSONObject>{
+                        override fun onSuccess(obj: JSONObject) {
+                            val intent = Intent(context, MainActivity::class.java)
+                            context.startActivity(intent)
+                        }
+
+                        override fun onFailure(e: Exception) {
+                            Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                        }
+                    }).login(mEmail, mPassword)
+                }
+            }).registration(mEmail, mPassword, mFirstName, mLastName)
             return true
         }
 
