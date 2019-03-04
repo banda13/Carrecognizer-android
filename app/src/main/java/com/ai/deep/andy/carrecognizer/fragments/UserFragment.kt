@@ -67,7 +67,6 @@ class UserFragment : Fragment() {
 
         val logout: FloatingActionButton = v.findViewById(R.id.logout)
         logout.setOnClickListener({
-            user = null
             SugarRecord.deleteAll(User::class.java)
             val intent = Intent(context, LoginActivity::class.java)
             context!!.startActivity(intent)

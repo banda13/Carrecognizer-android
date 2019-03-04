@@ -2,6 +2,7 @@ package com.ai.deep.andy.carrecognizer.services.users
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
 import com.android.volley.RequestQueue
 import com.android.volley.Response
@@ -33,9 +34,11 @@ class RegistrationService {
         val postRequest = object : JsonObjectRequest(BASE_URL + "create/", JSONObject(params),
                 Response.Listener<JSONObject> { response ->
                     Log.i("Response", response.toString())
+                    mCallBack?.onSuccess(response)
                 },
                 Response.ErrorListener { error ->
-                    Log.i("Error.Response", error.message)
+                    Toast.makeText(context, "Registraion failed :(", Toast.LENGTH_SHORT).show()
+                    mCallBack?.onFailure(error)
                 }
         ) {
 

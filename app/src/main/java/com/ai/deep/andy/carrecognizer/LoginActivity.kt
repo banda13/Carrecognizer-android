@@ -208,7 +208,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         if(loginTask != null|| signInTask != null){
             return
         }
-        val temporaryPw = UUID.randomUUID().toString()
+        val temporaryPw = Settings.Secure.getString(contentResolver,Settings.Secure.ANDROID_ID)
         val androidId = Settings.Secure.getString(contentResolver,Settings.Secure.ANDROID_ID)
         val temporaryEmail = "$androidId@android.com"
 
@@ -219,7 +219,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             signInTask!!.execute(null as Void?)
         }
         else{
-            loginTask = UserLoginTask(temporaryEmail, temporaryPw, this)
+            loginTask = UserLoginTask(currentUser?.email!!, currentUser?.password!!, this)
             loginTask!!.execute(null as Void?)
         }
     }
@@ -338,16 +338,25 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                                                    private val context: Activity) : AsyncTask<Void, Void, Boolean>() {
 
         override fun doInBackground(vararg params: Void): Boolean? {
-            try {
-                // Simulate network access.
-                Thread.sleep(2000)
-            } catch (e: InterruptedException) {
-                return false
-            }
+            var done: Boolean = false
+            var success : Boolean = false
 
-            val intent = Intent(context, MainActivity::class.java)
-            context.startActivity(intent)
-            return true
+            LoginService(applicationContext, object : VolleyOnEventListener<JSONObject>{
+                override fun onSuccess(obj: JSONObject) {
+                    success = true
+                    done = true
+                }
+
+                override fun onFailure(e: Exception) {
+                    Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                    success = false
+                    done = true
+                }
+            }).login(mEmail, mPassword)
+            while(!done){
+                //its of to block in background
+            }
+            return success
         }
 
         override fun onPostExecute(success: Boolean?) {
@@ -355,6 +364,8 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             showProgress(false)
 
             if (success!!) {
+                val intent = Intent(context, MainActivity::class.java)
+                context.startActivity(intent)
                 finish()
             } else {
                 password.error = getString(R.string.error_incorrect_password)
@@ -375,23 +386,21 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                                                    private val context: Activity) : AsyncTask<Void, Void, Boolean>() {
 
         override fun doInBackground(vararg params: Void): Boolean? {
-            try {
-                // Simulate network access.
-                Thread.sleep(2000)
-            } catch (e: InterruptedException) {
-                return false
-            }
+            var done: Boolean = false
+            var success : Boolean = false
 
             RegistrationService(applicationContext, object : VolleyOnEventListener<JSONObject>{
                 override fun onSuccess(obj: JSONObject) {
                     LoginService(applicationContext, object : VolleyOnEventListener<JSONObject>{
                         override fun onSuccess(obj: JSONObject) {
-                            val intent = Intent(context, MainActivity::class.java)
-                            context.startActivity(intent)
+                            success = true
+                            done = true
                         }
 
                         override fun onFailure(e: Exception) {
                             Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                            success = false
+                            done = true
                         }
                     }).login(mEmail, mPassword)
                 }
@@ -399,17 +408,23 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                 override fun onFailure(e: Exception) {
                     LoginService(applicationContext, object : VolleyOnEventListener<JSONObject>{
                         override fun onSuccess(obj: JSONObject) {
-                            val intent = Intent(context, MainActivity::class.java)
-                            context.startActivity(intent)
+                            success = true
+                            done = true
                         }
 
                         override fun onFailure(e: Exception) {
                             Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                            success = false
+                            done = true
                         }
                     }).login(mEmail, mPassword)
                 }
             }).registration(mEmail, mPassword, mFirstName, mLastName)
-            return true
+
+            while(!done){
+                //its of to block in background
+            }
+            return success
         }
 
         override fun onPostExecute(success: Boolean?) {
@@ -417,6 +432,8 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             showProgress(false)
 
             if (success!!) {
+                val intent = Intent(context, MainActivity::class.java)
+                context.startActivity(intent)
                 finish()
             } else {
                 password.error = getString(R.string.error_incorrect_password)

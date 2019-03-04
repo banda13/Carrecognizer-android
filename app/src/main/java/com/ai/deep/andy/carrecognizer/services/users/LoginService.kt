@@ -2,7 +2,9 @@ package com.ai.deep.andy.carrecognizer.services.users
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
+import com.ai.deep.andy.carrecognizer.utils.Logger
 import com.android.volley.Response
 import com.android.volley.toolbox.Volley
 import com.android.volley.RequestQueue
@@ -29,12 +31,16 @@ class LoginService {
         params["email"] = email
         params["password"] = password
 
+        Log.i(Logger.LOGTAG, "Loggin in with email " + email + " and password: " + password)
+
         val postRequest = object : JsonObjectRequest(BASE_URL + "login/", JSONObject(params),
                 Response.Listener<JSONObject> { response ->
                     Log.i("Response", response.toString())
+                    mCallBack?.onSuccess(response)
                 },
                 Response.ErrorListener { error ->
-                    Log.i("Error.Response", error.message)
+                    Toast.makeText(context, "Login failed :(", Toast.LENGTH_SHORT).show()
+                    mCallBack?.onFailure(error)
                 }
         ) {
 
