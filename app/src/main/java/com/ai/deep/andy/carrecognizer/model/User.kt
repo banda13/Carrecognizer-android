@@ -32,5 +32,6 @@ class User : SugarRecord<User> {
     var temporary_user : Boolean = true
     var temporary_email : String? = null
     var temporary_password : String? = null
-    
+
+    var jwtToken : String? = null
 }

@@ -3,12 +3,14 @@ package com.ai.deep.andy.carrecognizer.services.users
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import com.ai.deep.andy.carrecognizer.model.User
 import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
 import com.ai.deep.andy.carrecognizer.utils.Logger
 import com.android.volley.Response
 import com.android.volley.toolbox.Volley
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
+import com.orm.SugarRecord
 import org.json.JSONObject
 
 class LoginService {
@@ -24,6 +26,16 @@ class LoginService {
         this.mCallBack = callback
     }
 
+    fun updateUserToken(token: String){
+        //there will be maximum 1 User
+        val users = SugarRecord.findAll(User::class.java)
+        if(users.hasNext()){
+            val u : User = users.next()
+            u.jwtToken = token
+            u.save()
+            Log.i(Logger.LOGTAG, "User JWT token updated!")
+        }
+    }
 
     fun login(email: String, password: String){
 
@@ -36,6 +48,7 @@ class LoginService {
         val postRequest = object : JsonObjectRequest(BASE_URL + "login/", JSONObject(params),
                 Response.Listener<JSONObject> { response ->
                     Log.i("Response", response.toString())
+                    updateUserToken(response["token"] as String)
                     mCallBack?.onSuccess(response)
                 },
                 Response.ErrorListener { error ->

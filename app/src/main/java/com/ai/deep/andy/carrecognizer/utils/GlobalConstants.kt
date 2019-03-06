@@ -5,5 +5,11 @@ class GlobalConstants {
         const val USER_ID = "thisistheonlyuserandcantchangethis"
 
         const val JWT_PREFIX = "andy"
+
+        const val BASEURL = "http://carrecognizer.northeurope.cloudapp.azure.com/"
+        const val USERS_URL = BASEURL + "users/"
+        const val CORE_URL = BASEURL + "core/"
+
+        const val FILES_URL = CORE_URL + "file/"
     }
 }

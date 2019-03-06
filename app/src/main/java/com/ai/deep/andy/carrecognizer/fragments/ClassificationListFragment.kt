@@ -11,8 +11,19 @@ import android.view.View
 import android.view.ViewGroup
 import com.ai.deep.andy.carrecognizer.R
 
-import com.ai.deep.andy.carrecognizer.fragments.dummy.DummyContent
-import com.ai.deep.andy.carrecognizer.fragments.dummy.DummyContent.DummyItem
+import com.ai.deep.andy.carrecognizer.model.ClassificationItem
+import java.nio.file.Files.size
+import android.support.annotation.NonNull
+import android.widget.Toast
+import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
+import com.ai.deep.andy.carrecognizer.services.core.ListClassificationService
+import com.ai.deep.andy.carrecognizer.services.users.LoginService
+import kotlinx.android.synthetic.main.fragment_classification_list.*
+import org.json.JSONObject
+import java.nio.file.Files.size
+
+
+
 
 /**
  * A fragment representing a list of Items.
@@ -25,6 +36,13 @@ class ClassificationListFragment : Fragment() {
     private var columnCount = 1
 
     private var listener: OnListFragmentInteractionListener? = null
+    private var adapter: MyClassificationRecyclerViewAdapter? = null
+    private var recycleView : RecyclerView? = null
+
+    private var items : MutableList<ClassificationItem?> = mutableListOf()
+    private var currentPage : Int = 0
+    private var defaultPageSize : Int = 10
+    var isLoading = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,15 +58,83 @@ class ClassificationListFragment : Fragment() {
 
         // Set the adapter
         if (view is RecyclerView) {
-            with(view) {
-                layoutManager = when {
-                    columnCount <= 1 -> LinearLayoutManager(context)
-                    else -> GridLayoutManager(context, columnCount)
-                }
-                adapter = MyClassificationRecyclerViewAdapter(DummyContent.ITEMS, listener)
-            }
+            recycleView = view
+            loadMore()
+            initAdapter(view)
+            initScrollListener(view)
         }
         return view
+    }
+
+    private fun initAdapter(view: RecyclerView) {
+        with(view) {
+            layoutManager = when {
+                columnCount <= 1 -> LinearLayoutManager(context)
+                else -> GridLayoutManager(context, columnCount)
+            }
+            this.adapter = MyClassificationRecyclerViewAdapter(items, listener, context)
+        }
+    }
+
+    private fun initScrollListener(view: RecyclerView) {
+        view.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val linearLayoutManager = recyclerView.layoutManager as LinearLayoutManager
+
+                if (!isLoading) {
+                    if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == items.size - 1) {
+                        //bottom of list!
+                        loadMore()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun loadMore(){
+        isLoading = true
+        //items.addAll(MutableList(defaultPageSize) { null })
+        items.add(null)
+        adapter?.notifyItemInserted(items.size - 1)
+
+        ListClassificationService(context!!, object : VolleyOnEventListener<List<ClassificationItem>> {
+            override fun onSuccess(obj: List<ClassificationItem>) {
+                items.dropLast(1)
+                val scrollPosition = items.size
+                adapter?.notifyItemRemoved(scrollPosition)
+                items.addAll(obj)
+                adapter?.notifyDataSetChanged()
+                isLoading = false
+                showEmptyPlaceHolderIfNeeded()
+            }
+
+            override fun onFailure(e: Exception) {
+                Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                items.dropLast(1)
+                val scrollPosition = items.size
+                adapter?.notifyItemRemoved(scrollPosition)
+                isLoading = false
+                showEmptyPlaceHolderIfNeeded()
+
+            }
+        }).getItems(currentPage)
+    }
+
+    private fun showEmptyPlaceHolderIfNeeded(){
+        if (items.isEmpty()) {
+            recycleView?.visibility = View.INVISIBLE
+            empty_view?.visibility = View.VISIBLE
+
+        } else {
+            recycleView?.visibility = View.VISIBLE
+            empty_view?.visibility = View.INVISIBLE
+        }
     }
 
     override fun onAttach(context: Context) {
@@ -79,7 +165,7 @@ class ClassificationListFragment : Fragment() {
      */
     interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        fun onListFragmentInteraction(item: DummyItem?)
+        fun onListFragmentInteraction(item: ClassificationItem?)
     }
 
     companion object {
