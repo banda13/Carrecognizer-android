@@ -41,26 +41,22 @@ class ListClassificationService {
     fun getItems(page: Int){
         currentUser = getUser()
 
-        val url = BASE_URL + "classlist?page=" + page
+        val url = BASE_URL + "classlist/"
 
-        val req = object : JsonObjectRequest(Request.Method.GET, url, null, object : Response.Listener<JSONObject> {
-            override fun onResponse(response: JSONObject) {
-                Log.d(Logger.LOGTAG, response.toString())
-                mCallBack?.onSuccess(getItemListFromJson(response))
-            }
-        }, object : Response.ErrorListener {
-            override fun onErrorResponse(error: VolleyError) {
-                VolleyLog.d(Logger.LOGTAG, "Error: " + error.message)
-                Log.e(Logger.LOGTAG, "Site Info Error: " + error.message)
-                mCallBack?.onFailure(error)
-            }
+        val req = object : JsonObjectRequest(Request.Method.GET, url, null, Response.Listener<JSONObject> { response ->
+            Log.d(Logger.LOGTAG, response.toString())
+            mCallBack?.onSuccess(getItemListFromJson(response))
+        }, Response.ErrorListener { error ->
+            VolleyLog.d(Logger.LOGTAG, "Error: " + error.message)
+            Log.e(Logger.LOGTAG, "Site Info Error: " + error.message)
+            mCallBack?.onFailure(error)
         }) {
-            @Throws(AuthFailureError::class)
             override fun getHeaders(): Map<String, String> {
                 val headers = HashMap<String, String>()
                 headers.put("Authorization", GlobalConstants.JWT_PREFIX + " " + currentUser?.jwtToken)
                 return headers
             }
         }
+        queue!!.add(req)
     }
 }

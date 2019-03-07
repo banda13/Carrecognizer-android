@@ -23,8 +23,6 @@ import org.json.JSONObject
 import java.nio.file.Files.size
 
 
-
-
 /**
  * A fragment representing a list of Items.
  * Activities containing this fragment MUST implement the
@@ -37,11 +35,11 @@ class ClassificationListFragment : Fragment() {
 
     private var listener: OnListFragmentInteractionListener? = null
     private var adapter: MyClassificationRecyclerViewAdapter? = null
-    private var recycleView : RecyclerView? = null
+    private var recycleView: RecyclerView? = null
 
-    private var items : MutableList<ClassificationItem?> = mutableListOf()
-    private var currentPage : Int = 0
-    private var defaultPageSize : Int = 10
+    private var items: MutableList<ClassificationItem?> = mutableListOf()
+    private var currentPage: Int = 0
+    private var defaultPageSize: Int = 10
     var isLoading = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,13 +53,27 @@ class ClassificationListFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_classification_list, container, false)
+        recycleView = view.findViewById(R.id.recycle_list)
 
         // Set the adapter
-        if (view is RecyclerView) {
-            recycleView = view
-            loadMore()
-            initAdapter(view)
-            initScrollListener(view)
+        if (recycleView is RecyclerView) {
+            ListClassificationService(context!!, object : VolleyOnEventListener<List<ClassificationItem>> {
+                override fun onSuccess(obj: List<ClassificationItem>) {
+                    currentPage += defaultPageSize
+                    recycleView = recycleView
+                    initAdapter(recycleView!!)
+                    initScrollListener(recycleView!!)
+                    isLoading = false
+                    showEmptyPlaceHolderIfNeeded()
+                }
+
+                override fun onFailure(e: Exception) {
+                    Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                    isLoading = false
+                    showEmptyPlaceHolderIfNeeded()
+
+                }
+            }).getItems(currentPage)
         }
         return view
     }
@@ -97,7 +109,7 @@ class ClassificationListFragment : Fragment() {
         })
     }
 
-    private fun loadMore(){
+    private fun loadMore() {
         isLoading = true
         //items.addAll(MutableList(defaultPageSize) { null })
         items.add(null)
@@ -112,6 +124,7 @@ class ClassificationListFragment : Fragment() {
                 adapter?.notifyDataSetChanged()
                 isLoading = false
                 showEmptyPlaceHolderIfNeeded()
+                currentPage += defaultPageSize;
             }
 
             override fun onFailure(e: Exception) {
@@ -126,7 +139,7 @@ class ClassificationListFragment : Fragment() {
         }).getItems(currentPage)
     }
 
-    private fun showEmptyPlaceHolderIfNeeded(){
+    private fun showEmptyPlaceHolderIfNeeded() {
         if (items.isEmpty()) {
             recycleView?.visibility = View.INVISIBLE
             empty_view?.visibility = View.VISIBLE
