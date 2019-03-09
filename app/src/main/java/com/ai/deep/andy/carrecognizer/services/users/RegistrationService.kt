@@ -3,6 +3,7 @@ package com.ai.deep.andy.carrecognizer.services.users
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import com.ai.deep.andy.carrecognizer.services.CRServerException
 import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
 import com.android.volley.RequestQueue
 import com.android.volley.Response
@@ -15,7 +16,8 @@ class RegistrationService {
     var context : Context? = null
     var queue: RequestQueue? = null
     var mCallBack: VolleyOnEventListener<JSONObject>? = null
-    val BASE_URL = "http://carrecognizer.northeurope.cloudapp.azure.com/users/"
+    //val BASE_URL = "http://carrecognizer.northeurope.cloudapp.azure.com/users/"
+    val BASE_URL = "http://192.168.0.185/users/"
 
     constructor(context: Context, callback: VolleyOnEventListener<JSONObject>){
         this.context = context
@@ -34,7 +36,12 @@ class RegistrationService {
         val postRequest = object : JsonObjectRequest(BASE_URL + "create/", JSONObject(params),
                 Response.Listener<JSONObject> { response ->
                     Log.i("Response", response.toString())
-                    mCallBack?.onSuccess(response)
+                    if(response.has("error")){
+                        mCallBack?.onFailure(CRServerException(response.optString("error")))
+                    }
+                    else {
+                        mCallBack?.onSuccess(response)
+                    }
                 },
                 Response.ErrorListener { error ->
                     Toast.makeText(context, "Registraion failed :(", Toast.LENGTH_SHORT).show()

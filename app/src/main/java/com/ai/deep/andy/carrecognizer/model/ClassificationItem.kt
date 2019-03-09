@@ -24,7 +24,7 @@ class ClassificationItem {
     var image_name : String? = null
     var image_extension : String? = null
     var creationDate : Date? = null
-    var results : JSONObject? = null
+    var results : JSONArray? = null
     var creatorUserName : String? = null
 
     constructor()
@@ -41,7 +41,7 @@ class ClassificationItem {
         this.img_url = GlobalConstants.FILES_URL + creatorUserName + "/" + image_id + "_" + image_name + image_extension
         this.creationDate = null //TODO
 
-        this.results = json.getJSONObject("_results")
+        this.results = json.getJSONArray("_results")
     }
 
     fun getFormattedResults(): String{

@@ -14,10 +14,12 @@ import com.ai.deep.andy.carrecognizer.R
 import com.ai.deep.andy.carrecognizer.model.ClassificationItem
 import java.nio.file.Files.size
 import android.support.annotation.NonNull
+import android.util.Log
 import android.widget.Toast
 import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
 import com.ai.deep.andy.carrecognizer.services.core.ListClassificationService
 import com.ai.deep.andy.carrecognizer.services.users.LoginService
+import com.ai.deep.andy.carrecognizer.utils.Logger
 import kotlinx.android.synthetic.main.fragment_classification_list.*
 import org.json.JSONObject
 import java.nio.file.Files.size
@@ -38,8 +40,8 @@ class ClassificationListFragment : Fragment() {
     private var recycleView: RecyclerView? = null
 
     private var items: MutableList<ClassificationItem?> = mutableListOf()
-    private var currentPage: Int = 0
-    private var defaultPageSize: Int = 10
+    private var currentPage: Int = 1
+    private var defaultPageSize: Int = 5
     var isLoading = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,16 +61,20 @@ class ClassificationListFragment : Fragment() {
         if (recycleView is RecyclerView) {
             ListClassificationService(context!!, object : VolleyOnEventListener<List<ClassificationItem>> {
                 override fun onSuccess(obj: List<ClassificationItem>) {
-                    currentPage += defaultPageSize
                     recycleView = recycleView
+                    if(!obj.isEmpty()){
+                        currentPage += 1
+                        initScrollListener(recycleView!!)
+                        items.addAll(obj)
+                    }
                     initAdapter(recycleView!!)
-                    initScrollListener(recycleView!!)
                     isLoading = false
                     showEmptyPlaceHolderIfNeeded()
                 }
 
                 override fun onFailure(e: Exception) {
                     Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                    initAdapter(recycleView!!)
                     isLoading = false
                     showEmptyPlaceHolderIfNeeded()
 
@@ -79,13 +85,17 @@ class ClassificationListFragment : Fragment() {
     }
 
     private fun initAdapter(view: RecyclerView) {
+        val thiz = this
         with(view) {
             layoutManager = when {
                 columnCount <= 1 -> LinearLayoutManager(context)
                 else -> GridLayoutManager(context, columnCount)
             }
-            this.adapter = MyClassificationRecyclerViewAdapter(items, listener, context)
+            thiz.adapter = MyClassificationRecyclerViewAdapter(items, listener, context)
+            view.adapter = thiz.adapter
+            Log.i(Logger.LOGTAG, "Adapter initialized")
         }
+
     }
 
     private fun initScrollListener(view: RecyclerView) {
@@ -101,7 +111,6 @@ class ClassificationListFragment : Fragment() {
 
                 if (!isLoading) {
                     if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == items.size - 1) {
-                        //bottom of list!
                         loadMore()
                     }
                 }
@@ -110,43 +119,45 @@ class ClassificationListFragment : Fragment() {
     }
 
     private fun loadMore() {
+        Log.d(Logger.LOGTAG, "Loading more items")
         isLoading = true
         //items.addAll(MutableList(defaultPageSize) { null })
         items.add(null)
-        adapter?.notifyItemInserted(items.size - 1)
+        val tempAdapter = this.adapter
+        tempAdapter!!.notifyItemInserted(items.size - 1)
 
         ListClassificationService(context!!, object : VolleyOnEventListener<List<ClassificationItem>> {
             override fun onSuccess(obj: List<ClassificationItem>) {
-                items.dropLast(1)
+                items.removeAt(items.lastIndex)
                 val scrollPosition = items.size
-                adapter?.notifyItemRemoved(scrollPosition)
+                tempAdapter.notifyItemRemoved(scrollPosition)
                 items.addAll(obj)
-                adapter?.notifyDataSetChanged()
-                isLoading = false
+                tempAdapter.notifyDataSetChanged()
                 showEmptyPlaceHolderIfNeeded()
-                currentPage += defaultPageSize;
+                currentPage += 1
+                Log.i(Logger.LOGTAG, "New items loaded, current size " + items.size + " current page " + currentPage)
+                isLoading = false
             }
 
             override fun onFailure(e: Exception) {
-                Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
-                items.dropLast(1)
+                items.removeAt(items.lastIndex)
                 val scrollPosition = items.size
-                adapter?.notifyItemRemoved(scrollPosition)
-                isLoading = false
+                tempAdapter.notifyItemRemoved(scrollPosition)
                 showEmptyPlaceHolderIfNeeded()
-
+                Log.w(Logger.LOGTAG, "Loading more failed")
+                isLoading = false
             }
         }).getItems(currentPage)
     }
 
     private fun showEmptyPlaceHolderIfNeeded() {
         if (items.isEmpty()) {
-            recycleView?.visibility = View.INVISIBLE
+            recycleView?.visibility = View.GONE
             empty_view?.visibility = View.VISIBLE
 
         } else {
             recycleView?.visibility = View.VISIBLE
-            empty_view?.visibility = View.INVISIBLE
+            empty_view?.visibility = View.GONE
         }
     }
 
@@ -165,17 +176,7 @@ class ClassificationListFragment : Fragment() {
         listener = null
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     *
-     *
-     * See the Android Training lesson
-     * [Communicating with Other Fragments](http://developer.android.com/training/basics/fragments/communicating.html)
-     * for more information.
-     */
+
     interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
         fun onListFragmentInteraction(item: ClassificationItem?)

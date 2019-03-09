@@ -2,6 +2,7 @@ package com.ai.deep.andy.carrecognizer.fragments
 
 import android.content.Context
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,8 +21,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.Glide.init
 import com.ai.deep.andy.carrecognizer.fragments.MyClassificationRecyclerViewAdapter.LoadingViewHolder
 import com.ai.deep.andy.carrecognizer.fragments.MyClassificationRecyclerViewAdapter.ItemViewHolder
-
-
+import com.ai.deep.andy.carrecognizer.utils.Logger
 
 
 class MyClassificationRecyclerViewAdapter(
@@ -45,7 +45,6 @@ class MyClassificationRecyclerViewAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-
         if (viewType == VIEW_TYPE_ITEM) {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.fragment_classification_item, parent, false)
             return ItemViewHolder(view)
@@ -54,6 +53,8 @@ class MyClassificationRecyclerViewAdapter(
             return LoadingViewHolder(view)
         }
     }
+
+
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is ItemViewHolder) {
@@ -89,12 +90,11 @@ class MyClassificationRecyclerViewAdapter(
     }
 
     private fun showLoadingView(viewHolder: LoadingViewHolder, position: Int) {
-        //ProgressBar would be displayed
-
+        Log.i(Logger.LOGTAG, "Showing progress bar at position $position")
     }
 
     private fun populateItemRows(viewHolder: ItemViewHolder, position: Int) {
-
+        Log.i(Logger.LOGTAG, "Populating new item in position $position")
         val item = mValues[position]
         viewHolder.mIdView.text = item?.classificationId.toString()
         viewHolder.mDateView.text = DateUtils.toSimpleString(item?.creationDate)

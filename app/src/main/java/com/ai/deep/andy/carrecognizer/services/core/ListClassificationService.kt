@@ -20,7 +20,8 @@ class ListClassificationService {
     var context : Context? = null
     var queue: RequestQueue? = null
     var mCallBack: VolleyOnEventListener<List<ClassificationItem>>? = null
-    val BASE_URL = "http://carrecognizer.northeurope.cloudapp.azure.com/core/"
+    //val BASE_URL = "http://carrecognizer.northeurope.cloudapp.azure.com/core/"
+    val BASE_URL = "http://192.168.0.185/core/"
     var currentUser : User? = null
 
     constructor(context: Context, callback: VolleyOnEventListener<List<ClassificationItem>>){
@@ -41,7 +42,10 @@ class ListClassificationService {
     fun getItems(page: Int){
         currentUser = getUser()
 
-        val url = BASE_URL + "classlist/"
+        var url = BASE_URL + "classlist/"
+        if(page > 1){
+            url += "?page=$page"
+        }
 
         val req = object : JsonObjectRequest(Request.Method.GET, url, null, Response.Listener<JSONObject> { response ->
             Log.d(Logger.LOGTAG, response.toString())
