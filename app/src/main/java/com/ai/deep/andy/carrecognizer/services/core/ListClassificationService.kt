@@ -15,19 +15,17 @@ import com.android.volley.*
 import com.android.volley.toolbox.JsonObjectRequest
 
 
-class ListClassificationService {
+class ListClassificationService(context: Context, callback: VolleyOnEventListener<List<ClassificationItem>>) {
 
-    var context : Context? = null
+    var context : Context? = context
     var queue: RequestQueue? = null
-    var mCallBack: VolleyOnEventListener<List<ClassificationItem>>? = null
+    var mCallBack: VolleyOnEventListener<List<ClassificationItem>>? = callback
     //val BASE_URL = "http://carrecognizer.northeurope.cloudapp.azure.com/core/"
     val BASE_URL = "http://192.168.0.185/core/"
     var currentUser : User? = null
 
-    constructor(context: Context, callback: VolleyOnEventListener<List<ClassificationItem>>){
-        this.context = context
+    init {
         this.queue = Volley.newRequestQueue(context)
-        this.mCallBack = callback
     }
 
     fun getUser() : User? {
@@ -62,5 +60,9 @@ class ListClassificationService {
             }
         }
         queue!!.add(req)
+    }
+
+    init {
+        this.queue = Volley.newRequestQueue(context)
     }
 }

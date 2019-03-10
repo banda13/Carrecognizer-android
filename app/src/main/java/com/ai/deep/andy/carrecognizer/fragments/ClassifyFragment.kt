@@ -13,8 +13,15 @@ import com.ai.deep.andy.carrecognizer.R
 import java.io.File
 import android.graphics.BitmapFactory
 import android.graphics.Bitmap
+import android.util.Log
 import android.widget.ImageView
+import com.ai.deep.andy.carrecognizer.model.ClassificationItem
+import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
+import com.ai.deep.andy.carrecognizer.services.core.ClassifyService
+import com.ai.deep.andy.carrecognizer.services.core.ListClassificationService
+import com.ai.deep.andy.carrecognizer.utils.Logger
 import kotlinx.android.synthetic.main.fragment_classify.*
+import org.json.JSONObject
 
 
 private const val ARG_PARAM1 = "param1"
@@ -48,8 +55,26 @@ class ClassifyFragment : Fragment() {
         backButton.setOnClickListener {
             listener?.goBackToCamera()
         }
+
+        val classifyButton : FloatingActionButton = v.findViewById(R.id.classify_button)
+        classifyButton.setOnClickListener{
+            doClassification()
+        }
+
         v.findViewById<ImageView>(R.id.my_image_container).setImageBitmap(imageBitmap)
         return v
+    }
+
+    fun doClassification(){
+        ClassifyService(context!!, object : VolleyOnEventListener<JSONObject> {
+            override fun onSuccess(obj: JSONObject) {
+                Log.i(Logger.LOGTAG, "Classification was successful")
+            }
+
+            override fun onFailure(e: Exception) {
+                Log.e(Logger.LOGTAG, "Classification failed")
+            }
+        }).classifyImage(imageBitmap!!)
     }
 
 
