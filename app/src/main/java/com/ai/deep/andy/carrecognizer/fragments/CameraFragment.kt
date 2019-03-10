@@ -18,6 +18,7 @@ import com.ai.deep.andy.carrecognizer.R
 import android.widget.FrameLayout
 import android.widget.Toast
 import com.ai.deep.andy.carrecognizer.camera.CameraPreview
+import com.ai.deep.andy.carrecognizer.utils.FileUtils
 import com.ai.deep.andy.carrecognizer.utils.Logger
 import kotlinx.android.synthetic.main.fragment_classification_list.*
 import java.io.File
@@ -40,7 +41,7 @@ class CameraFragment : Fragment() {
     private var mCamera: Camera? = null
     private var mPreview: CameraPreview? = null
     private val mPicture = Camera.PictureCallback { data, _ ->
-        val pictureFile: File = getOutputMediaFile(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE) ?: run {
+        val pictureFile: File = FileUtils.getTempFile(context!!, MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE) ?: run {
             Log.d(Logger.LOGTAG, ("Error creating media file, check storage permissions"))
             safeToTakePicture = true
             return@PictureCallback
@@ -51,6 +52,7 @@ class CameraFragment : Fragment() {
             fos.write(data)
             fos.close()
 
+            Log.i(Logger.LOGTAG, "New file save to temporary location " + pictureFile.name)
             listener?.captureImageWithCamera(pictureFile)
         } catch (e: FileNotFoundException) {
             Log.d(Logger.LOGTAG, "File not found: ${e.message}")
@@ -61,7 +63,6 @@ class CameraFragment : Fragment() {
     }
 
 
-    // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
     private var listener: OnCameraFragmentInteraction? = null
@@ -151,50 +152,8 @@ class CameraFragment : Fragment() {
         return context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)
     }
 
-    private fun getOutputMediaFile(type: Int): File? {
-        // To be safe, you should check that the SDCard is mounted
-        // using Environment.getExternalStorageState() before doing this.
-
-        val mediaStorageDir = File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                "MyCameraApp"
-        )
-        // This location works best if you want the created images to be shared
-        // between applications and persist after your app has been uninstalled.
-
-        // Create the storage directory if it does not exist
-        mediaStorageDir.apply {
-            if (!exists()) {
-                if (!mkdirs()) {
-                    Log.d("MyCameraApp", "failed to create directory")
-                    return null
-                }
-            }
-        }
-
-        // Create a media file name
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
-        return when (type) {
-            MEDIA_TYPE_IMAGE -> {
-                File("${mediaStorageDir.path}${File.separator}IMG_$timeStamp.jpg")
-            }
-            MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO -> {
-                File("${mediaStorageDir.path}${File.separator}VID_$timeStamp.mp4")
-            }
-            else -> null
-        }
-    }
-
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment CameraFragment.
-         */
-        // TODO: Rename and change types and number of parameters
+
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
                 CameraFragment().apply {

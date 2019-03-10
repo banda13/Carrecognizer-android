@@ -1,5 +1,6 @@
 package com.ai.deep.andy.carrecognizer.fragments
 
+import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
@@ -13,15 +14,24 @@ import com.ai.deep.andy.carrecognizer.R
 import java.io.File
 import android.graphics.BitmapFactory
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.provider.MediaStore
+import android.support.design.widget.Snackbar
 import android.util.Log
+import android.widget.FrameLayout
 import android.widget.ImageView
 import com.ai.deep.andy.carrecognizer.model.ClassificationItem
 import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
 import com.ai.deep.andy.carrecognizer.services.core.ClassifyService
 import com.ai.deep.andy.carrecognizer.services.core.ListClassificationService
+import com.ai.deep.andy.carrecognizer.services.statistics.AvgClassificationTimeService
+import com.ai.deep.andy.carrecognizer.utils.FileUtils
 import com.ai.deep.andy.carrecognizer.utils.Logger
 import kotlinx.android.synthetic.main.fragment_classify.*
 import org.json.JSONObject
+import java.io.FileOutputStream
+import java.io.IOException
+import kotlin.math.roundToInt
 
 
 private const val ARG_PARAM1 = "param1"
@@ -34,6 +44,15 @@ class ClassifyFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
     private var listener: OnClassifyFragmentListener? = null
+    private var frameLayout : FrameLayout? = null
+
+    private var averageClassificationTime = 0
+    private var processStep = 0
+    private val processResolution = 10
+
+    enum class ClassificationState{
+        NOT_STARTED, IN_PROGRESS, ERROR, DONE
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,31 +71,122 @@ class ClassifyFragment : Fragment() {
         // Inflate the layout for this fragment
         val v : View = inflater.inflate(R.layout.fragment_classify, container, false)
         val backButton: FloatingActionButton = v.findViewById(R.id.back_to_camera)
-        backButton.setOnClickListener {
-            listener?.goBackToCamera()
-        }
-
         val classifyButton : FloatingActionButton = v.findViewById(R.id.classify_button)
-        classifyButton.setOnClickListener{
-            doClassification()
-        }
-
+        val saveButton : FloatingActionButton = v.findViewById(R.id.save_classification_button)
+        frameLayout = v.findViewById(R.id.frame_container)
         v.findViewById<ImageView>(R.id.my_image_container).setImageBitmap(imageBitmap)
-        return v
-    }
+        classifyButton.isEnabled = false
 
-    fun doClassification(){
-        ClassifyService(context!!, object : VolleyOnEventListener<JSONObject> {
-            override fun onSuccess(obj: JSONObject) {
-                Log.i(Logger.LOGTAG, "Classification was successful")
+        AvgClassificationTimeService(context!!, object : VolleyOnEventListener<Int>{
+            override fun onSuccess(obj: Int) {
+                averageClassificationTime = obj
+                processStep = (obj / processResolution)
+                classifyButton.isEnabled = true
+                backButton.setOnClickListener {
+                    listener?.goBackToCamera()
+                }
+
+                classifyButton.setOnClickListener{
+                    doClassification()
+                }
+
+                saveButton.setOnClickListener{
+                    saveImage()
+                }
+
+                changeLayout(ClassificationState.NOT_STARTED)
             }
 
             override fun onFailure(e: Exception) {
-                Log.e(Logger.LOGTAG, "Classification failed")
+                val errorMsg : String =  if (e.message == null) "Unexpected error, please try again later" else e.message!!
+                Log.e(Logger.LOGTAG, errorMsg)
+                setError(errorMsg)
+            }
+        }).getAvarageUsageStatistics()
+
+        return v
+    }
+
+    fun changeLayout(state: ClassificationState){
+        classification_result_layout?.visibility = if (state == ClassificationState.DONE) View.VISIBLE else View.GONE
+        classification_in_progress_layout?.visibility = if (state == ClassificationState.IN_PROGRESS) View.VISIBLE else View.GONE
+        classification_not_started_layout?.visibility =if (state == ClassificationState.NOT_STARTED) View.VISIBLE else View.GONE
+        classification_error_layout?.visibility = if (state == ClassificationState.ERROR) View.VISIBLE else View.GONE
+    }
+
+    fun setError(message : String){
+        changeLayout(ClassificationState.ERROR)
+        classification_error_text.text = message
+    }
+
+    fun doClassification(){
+        changeLayout(ClassificationState.IN_PROGRESS)
+        number_progress_bar.progress = 0
+
+        val t = Thread(Runnable {
+            for (i in 1..processResolution) {
+                val p = ((i * processStep ).div(averageClassificationTime.toDouble()) * 100).roundToInt()
+                Log.i(Logger.LOGTAG, p.toString())
+
+                activity?.runOnUiThread(java.lang.Runnable {
+                    number_progress_bar.progress = (if (p <= 100) p else 100)
+                })
+                Thread.sleep(processStep.toLong())
+            }
+        })
+        t.start()
+
+        ClassifyService(context!!, object : VolleyOnEventListener<JSONObject> {
+            override fun onSuccess(obj: JSONObject) {
+                if(t.isAlive){
+                    t.interrupt()
+                }
+                number_progress_bar.progress = 100
+                Log.i(Logger.LOGTAG, "Classification was successful")
+
+                changeLayout(ClassificationState.DONE)
+                classify_button?.visibility = View.GONE
+            }
+
+            override fun onFailure(e: Exception) {
+                if(t.isAlive){
+                    t.interrupt()
+                }
+                val errorMsg : String =  if (e.message == null) "Unexpected classification error, please try again later" else e.message!!
+                number_progress_bar.progress = 0
+                Log.e(Logger.LOGTAG, errorMsg)
+                setError(errorMsg)
             }
         }).classifyImage(imageBitmap!!)
     }
 
+    fun saveImage(){
+        val file : File = FileUtils.getOutputMediaFile(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE)
+
+        var fos: FileOutputStream? = null
+        try {
+            fos = FileOutputStream(file)
+            // Use the compress method on the BitMap object to write image to the OutputStream
+            imageBitmap?.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+
+            if(frameLayout != null) {
+                Snackbar.make(frameLayout!!, "Image saved", Snackbar.LENGTH_SHORT).show()
+            }
+            Log.i(Logger.LOGTAG, "Image saved as " + file?.name)
+        } catch (e: Exception) {
+            Log.e(Logger.LOGTAG, "Failed to save image", e)
+            if(frameLayout != null) {
+                Snackbar.make(frameLayout!!, "Failed to save image, try again", Snackbar.LENGTH_SHORT).show()
+            }
+        } finally {
+            try {
+                fos?.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+
+        }
+    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)

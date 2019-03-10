@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/frame_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.ClassifyFragment">
@@ -15,16 +16,19 @@
 
         <ImageView
             android:id="@+id/my_image_container"
-            android:src="@drawable/ic_action_image"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="5"/>
+            android:layout_weight="5"
+            android:src="@drawable/ic_action_image" />
 
         <LinearLayout
+            android:id="@+id/classification_result_layout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="3"
-            android:orientation="vertical">
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -54,10 +58,62 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/classification_error_layout"
             android:layout_width="match_parent"
-            android:gravity="center_horizontal"
+            android:layout_height="0dp"
+            android:layout_weight="3"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/classification_error_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ERROR" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/classification_in_progress_layout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="3"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.daimajia.numberprogressbar.NumberProgressBar
+                android:id="@+id/number_progress_bar"
+                style="@style/NumberProgressBar_Default"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/classification_not_started_layout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="3"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <TextView
+                android:id="@+id/no_classification_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap the button below to classify this image" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="2"
+            android:gravity="center_horizontal"
             android:orientation="horizontal">
 
             <android.support.design.widget.FloatingActionButton
@@ -84,7 +140,5 @@
         </LinearLayout>
 
     </LinearLayout>
-
-
 
 </FrameLayout>
