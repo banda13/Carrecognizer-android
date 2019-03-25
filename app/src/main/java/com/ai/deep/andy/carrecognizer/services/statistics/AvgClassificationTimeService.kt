@@ -13,7 +13,7 @@ class AvgClassificationTimeService(context: Context, callback: VolleyOnEventList
     var context: Context? = context
     var queue: RequestQueue? = null
     var mCallBack: VolleyOnEventListener<Int>? = callback
-    val BASE_URL = "http://192.168.0.185/core/statistics/classification/avgtime"
+    val BASE_URL = "http://176.63.245.216:1235/core/statistics/classification/avgtime"
     var currentUser: User? = null
 
     fun getAvarageUsageStatistics(){
