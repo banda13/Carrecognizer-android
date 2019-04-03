@@ -25,6 +25,7 @@ import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
 import com.ai.deep.andy.carrecognizer.services.core.ClassifyService
 import com.ai.deep.andy.carrecognizer.services.core.ListClassificationService
 import com.ai.deep.andy.carrecognizer.services.statistics.AvgClassificationTimeService
+import com.ai.deep.andy.carrecognizer.utils.ClassifierUtils
 import com.ai.deep.andy.carrecognizer.utils.FileUtils
 import com.ai.deep.andy.carrecognizer.utils.Logger
 import kotlinx.android.synthetic.main.fragment_classify.*
@@ -125,13 +126,18 @@ class ClassifyFragment : Fragment() {
 
         val t = Thread(Runnable {
             for (i in 1..processResolution) {
-                val p = ((i * processStep ).div(averageClassificationTime.toDouble()) * 100).roundToInt()
-                Log.i(Logger.LOGTAG, p.toString())
+                try {
+                    val p = ((i * processStep).div(averageClassificationTime.toDouble()) * 100).roundToInt()
+                    Log.i(Logger.LOGTAG, p.toString())
 
-                activity?.runOnUiThread(java.lang.Runnable {
-                    number_progress_bar.progress = (if (p <= 100) p else 100)
-                })
-                Thread.sleep(processStep.toLong())
+                    activity?.runOnUiThread(java.lang.Runnable {
+                        number_progress_bar.progress = (if (p <= 100) p else 100)
+                    })
+
+                    Thread.sleep(processStep.toLong())
+                } catch (e: InterruptedException){
+                    Log.d(Logger.LOGTAG, "Thread interrupted, but it's ok, classification ended")
+                }
             }
         })
         t.start()
@@ -146,6 +152,8 @@ class ClassifyFragment : Fragment() {
 
                 changeLayout(ClassificationState.DONE)
                 classify_button?.visibility = View.GONE
+
+                classification_results?.text = ClassifierUtils.formatClassifierResult(obj)
             }
 
             override fun onFailure(e: Exception) {
