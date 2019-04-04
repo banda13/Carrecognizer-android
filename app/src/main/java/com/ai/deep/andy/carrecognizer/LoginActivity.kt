@@ -27,13 +27,12 @@ import android.app.Activity
 import android.content.Intent
 import android.provider.Settings
 import android.service.autofill.RegexValidator
+import android.util.Log
 import android.widget.Toast
 import com.ai.deep.andy.carrecognizer.model.User
 import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
 import com.ai.deep.andy.carrecognizer.services.users.LoginService
 import com.ai.deep.andy.carrecognizer.services.users.RegistrationService
-import com.ai.deep.andy.carrecognizer.utils.ErrorUtils
-import com.android.volley.TimeoutError
 import com.orm.SugarRecord
 
 import kotlinx.android.synthetic.main.activity_login.*
@@ -428,12 +427,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                         }
 
                         override fun onFailure(e: Exception) {
-                            lastErrorMessage = if(e is TimeoutError){
-                                "Server is not available, check your internet connection"
-                            } else{
-                                "Registration failed: " + e.message
-                            }
-                            ErrorUtils.logError(lastErrorMessage, e, ErrorUtils.ErrorCode.USER_REGISTRATION_FAILED)
+                            Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
                             success = false
                             done = true
                         }
