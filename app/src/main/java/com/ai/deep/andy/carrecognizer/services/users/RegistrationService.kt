@@ -44,7 +44,6 @@ class RegistrationService {
                     }
                 },
                 Response.ErrorListener { error ->
-                    Toast.makeText(context, "Registraion failed :(", Toast.LENGTH_SHORT).show()
                     mCallBack?.onFailure(error)
                 }
         ) {

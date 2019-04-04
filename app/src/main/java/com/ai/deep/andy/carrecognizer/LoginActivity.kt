@@ -32,6 +32,8 @@ import com.ai.deep.andy.carrecognizer.model.User
 import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
 import com.ai.deep.andy.carrecognizer.services.users.LoginService
 import com.ai.deep.andy.carrecognizer.services.users.RegistrationService
+import com.ai.deep.andy.carrecognizer.utils.ErrorUtils
+import com.android.volley.TimeoutError
 import com.orm.SugarRecord
 
 import kotlinx.android.synthetic.main.activity_login.*
@@ -46,6 +48,8 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     private var loginTask: UserLoginTask? = null
     private var signInTask: UserSignInTask? = null
     private var currentUser: User? = null
+
+    private var lastErrorMessage: String = "Unknown error occurred with authentication, please try again later"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -348,7 +352,12 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                 }
 
                 override fun onFailure(e: Exception) {
-                    Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                    lastErrorMessage = if(e is TimeoutError){
+                        "Server is not available, check your internet connection"
+                    } else{
+                        "Unable to login: " + e.message
+                    }
+                    ErrorUtils.logError(lastErrorMessage, e, ErrorUtils.ErrorCode.USER_LOGIN_FAILED)
                     success = false
                     done = true
                 }
@@ -368,8 +377,9 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                 context.startActivity(intent)
                 finish()
             } else {
-                password.error = getString(R.string.error_incorrect_password)
-                password.requestFocus()
+                Toast.makeText(context, lastErrorMessage, Toast.LENGTH_SHORT).show()
+                //password.error = getString(R.string.error_incorrect_password)
+                //password.requestFocus()
             }
         }
 
@@ -398,7 +408,12 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                         }
 
                         override fun onFailure(e: Exception) {
-                            Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                            lastErrorMessage = if(e is TimeoutError){
+                                "Server is not available, check your internet connection"
+                            } else{
+                                "Unable to login: " + e.message
+                            }
+                            ErrorUtils.logError(lastErrorMessage, e, ErrorUtils.ErrorCode.USER_LOGIN_FAILED)
                             success = false
                             done = true
                         }
@@ -413,7 +428,12 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                         }
 
                         override fun onFailure(e: Exception) {
-                            Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                            lastErrorMessage = if(e is TimeoutError){
+                                "Server is not available, check your internet connection"
+                            } else{
+                                "Registration failed: " + e.message
+                            }
+                            ErrorUtils.logError(lastErrorMessage, e, ErrorUtils.ErrorCode.USER_REGISTRATION_FAILED)
                             success = false
                             done = true
                         }
@@ -436,8 +456,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                 context.startActivity(intent)
                 finish()
             } else {
-                password.error = getString(R.string.error_incorrect_password)
-                password.requestFocus()
+                Toast.makeText(context, lastErrorMessage, Toast.LENGTH_SHORT).show()
             }
         }
 
