@@ -43,4 +43,6 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
 
     implementation 'com.daimajia.numberprogressbar:library:1.4@aar'
+
+    compile 'org.tensorflow:tensorflow-lite:+'
 }
