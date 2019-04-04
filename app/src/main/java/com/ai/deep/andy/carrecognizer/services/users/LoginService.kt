@@ -59,7 +59,6 @@ class LoginService {
                     }
                 },
                 Response.ErrorListener { error ->
-                    Toast.makeText(context, "Login failed :(", Toast.LENGTH_SHORT).show()
                     mCallBack?.onFailure(error)
                 }
         ) {
