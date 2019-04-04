@@ -81,6 +81,8 @@ class ClassifyFragment : Fragment() {
         AvgClassificationTimeService(context!!, object : VolleyOnEventListener<Int>{
             override fun onSuccess(obj: Int) {
                 averageClassificationTime = obj
+
+                Log.i(Logger.LOGTAG, "Average classification time: " + averageClassificationTime)
                 processStep = (obj / processResolution)
                 classifyButton.isEnabled = true
                 backButton.setOnClickListener {
@@ -116,18 +118,20 @@ class ClassifyFragment : Fragment() {
     }
 
     fun setError(message : String){
+        Log.e(Logger.LOGTAG, "Wow unexpected error: " + message)
         changeLayout(ClassificationState.ERROR)
         classification_error_text.text = message
     }
 
     fun doClassification(){
+        Log.i(Logger.LOGTAG, "Start processing classification request..")
         changeLayout(ClassificationState.IN_PROGRESS)
         number_progress_bar.progress = 0
 
         val t = Thread(Runnable {
             for (i in 1..processResolution) {
                 try {
-                    val p = ((i * processStep).div(averageClassificationTime.toDouble()) * 100).roundToInt()
+                    val p = ((i * processStep).div(averageClassificationTime.toDouble()) * 100).toInt()
                     Log.i(Logger.LOGTAG, p.toString())
 
                     activity?.runOnUiThread(java.lang.Runnable {
@@ -169,6 +173,7 @@ class ClassifyFragment : Fragment() {
     }
 
     fun saveImage(){
+        Log.i(Logger.LOGTAG, "Saving image started")
         val file : File = FileUtils.getOutputMediaFile(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE)
 
         var fos: FileOutputStream? = null
@@ -180,7 +185,7 @@ class ClassifyFragment : Fragment() {
             if(frameLayout != null) {
                 Snackbar.make(frameLayout!!, "Image saved", Snackbar.LENGTH_SHORT).show()
             }
-            Log.i(Logger.LOGTAG, "Image saved as " + file?.name)
+            Log.i(Logger.LOGTAG, "Image saved as " + file.name)
         } catch (e: Exception) {
             Log.e(Logger.LOGTAG, "Failed to save image", e)
             if(frameLayout != null) {

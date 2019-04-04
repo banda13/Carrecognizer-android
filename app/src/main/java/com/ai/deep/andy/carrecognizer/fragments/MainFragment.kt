@@ -10,7 +10,11 @@ import android.view.View
 import android.view.ViewGroup
 
 import com.ai.deep.andy.carrecognizer.R
+import com.ai.deep.andy.carrecognizer.ai.CarDetectorClassifier
 import java.io.File
+import android.os.AsyncTask.execute
+
+
 
 private const val CAMERA_FRAGMENT_TAG = "camera_tag"
 private const val CLASSIFY_FRAGMENT_TAG = "classify_tag"
@@ -21,7 +25,7 @@ class MainFragment : Fragment() {
     private var classifyTag: String? = null
 
     private var cameraFragment: CameraFragment = CameraFragment.newInstance("", "")
-    private var classifyFragment: ClassifyFragment = ClassifyFragment.newInstance("", "");
+    private var classifyFragment: ClassifyFragment = ClassifyFragment.newInstance("", "")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,4 +74,5 @@ class MainFragment : Fragment() {
                 ?.commit()
         classifyFragment.changeImageFile(f)
     }
+
 }

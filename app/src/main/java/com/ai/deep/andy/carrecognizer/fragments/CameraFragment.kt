@@ -93,6 +93,7 @@ class CameraFragment : Fragment() {
                 safeToTakePicture = false;
             }
             else{
+                Log.e(Logger.LOGTAG, "Oopsie, taking picture failed, because its not safe now..")
                 Toast.makeText(context, "Its not safe to create picture now!", Toast.LENGTH_SHORT).show()
             }
         }
