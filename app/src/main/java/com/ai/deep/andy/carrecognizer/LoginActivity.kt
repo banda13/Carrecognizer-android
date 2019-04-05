@@ -33,6 +33,8 @@ import com.ai.deep.andy.carrecognizer.model.User
 import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
 import com.ai.deep.andy.carrecognizer.services.users.LoginService
 import com.ai.deep.andy.carrecognizer.services.users.RegistrationService
+import com.ai.deep.andy.carrecognizer.utils.ErrorUtils
+import com.android.volley.TimeoutError
 import com.orm.SugarRecord
 
 import kotlinx.android.synthetic.main.activity_login.*
@@ -377,8 +379,6 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                 finish()
             } else {
                 Toast.makeText(context, lastErrorMessage, Toast.LENGTH_SHORT).show()
-                //password.error = getString(R.string.error_incorrect_password)
-                //password.requestFocus()
             }
         }
 

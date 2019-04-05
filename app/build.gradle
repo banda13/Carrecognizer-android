@@ -7,7 +7,7 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "com.ai.deep.andy.carrecognizer"
+        applicationId "com.ai.deep.andy.carrecognizerv2"
         minSdkVersion 15
         targetSdkVersion 27
         versionCode 1
@@ -20,6 +20,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    aaptOptions {
+        noCompress "tflite"
     }
 }
 
@@ -44,5 +47,5 @@ dependencies {
 
     implementation 'com.daimajia.numberprogressbar:library:1.4@aar'
 
-    compile 'org.tensorflow:tensorflow-lite:+'
+    implementation 'org.tensorflow:tensorflow-lite:+'
 }

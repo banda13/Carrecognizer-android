@@ -7,7 +7,7 @@ class GlobalConstants {
         const val JWT_PREFIX = "andy"
 
         //const val BASEURL = "http://carrecognizer.northeurope.cloudapp.azure.com/"
-        const val BASEURL = "http://192.168.0.185/"
+        const val BASEURL = "http://176.63.245.216:1235/"
         const val USERS_URL = BASEURL + "users/"
         const val CORE_URL = BASEURL + "core/"
 

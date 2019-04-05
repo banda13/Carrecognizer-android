@@ -40,7 +40,7 @@ private var classifier: CarDetectorClassifier? = null
 private val executor = Executors.newSingleThreadExecutor()
 
 private const val MODEL_PATH = "converted_model.tflite"
-private const val QUANT = true
+private const val QUANT = false
 private const val LABEL_PATH = "labels.txt"
 private const val INPUT_SIZE = 150
 
