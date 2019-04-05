@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
             }
         }
     }
-    
+
     private fun selectImageFromGallery(f: Bitmap){
         val fragment: Fragment? = supportFragmentManager?.findFragmentByTag("android:switcher:" + R.id.container + ":" + container.currentItem)
         if(container?.currentItem == 1 && fragment != null){
@@ -111,6 +111,7 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
                 .setNegativeButton("Create new photo") { dialog, _ ->
                     dialog.dismiss()
                     Toast.makeText(context, "Try different angle, or check help to get more accurate predictions", Toast.LENGTH_SHORT).show()
+                    (fragment as MainFragment).changeToClassifyFragment(imgBitmap)
                     goBackToCamera()
                 }.setPositiveButton("Continue") { _, _ ->
                     (fragment as MainFragment).changeToClassifyFragment(imgBitmap)

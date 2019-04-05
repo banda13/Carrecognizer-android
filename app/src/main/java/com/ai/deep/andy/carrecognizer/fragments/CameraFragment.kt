@@ -40,6 +40,7 @@ class CameraFragment : Fragment() {
     private var safeToTakePicture = true
     private var mCamera: Camera? = null
     private var mPreview: CameraPreview? = null
+
     private val mPicture = Camera.PictureCallback { data, _ ->
         val pictureFile: File = FileUtils.getTempFile(context!!, MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE) ?: run {
             Log.d(Logger.LOGTAG, ("Error creating media file, check storage permissions"))
@@ -105,6 +106,7 @@ class CameraFragment : Fragment() {
 
         return v
     }
+
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
