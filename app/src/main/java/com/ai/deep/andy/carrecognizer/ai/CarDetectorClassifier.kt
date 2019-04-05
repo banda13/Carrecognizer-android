@@ -17,10 +17,10 @@ import android.annotation.SuppressLint
 import java.lang.Float
 import java.util.*
 import kotlin.experimental.and
+import java.nio.file.Files.size
 
 
-const val IMG_WIDTH = 150
-const val IMG_HEIGHT = 150
+
 
 object CarDetectorClassifier: IClassifer{
 
@@ -75,7 +75,7 @@ object CarDetectorClassifier: IClassifer{
     private fun convertBitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
         Log.i(Logger.LOGTAG, "Converting bitmap to bytebuffer..")
         val byteBuffer: ByteBuffer = if (quant) {
-            ByteBuffer.allocateDirect(BATCH_SIZE * inputSize * inputSize * PIXEL_SIZE)
+            ByteBuffer.allocateDirect(1 * BATCH_SIZE * inputSize * inputSize * PIXEL_SIZE)
         } else {
             ByteBuffer.allocateDirect(4 * BATCH_SIZE * inputSize * inputSize * PIXEL_SIZE)
         }
@@ -86,15 +86,15 @@ object CarDetectorClassifier: IClassifer{
         var pixel = 0
         for (i in 0 until inputSize) {
             for (j in 0 until inputSize) {
-                val `val` = intValues[pixel++]
+                val value = intValues[pixel++]
                 if (quant) {
-                    byteBuffer.put((`val` shr 16 and 0xFF).toByte())
-                    byteBuffer.put((`val` shr 8 and 0xFF).toByte())
-                    byteBuffer.put((`val` and 0xFF).toByte())
+                    byteBuffer.put(((value shr 16) and 0xFF).toByte())
+                    byteBuffer.put(((value shr 8) and 0xFF).toByte())
+                    byteBuffer.put((value and 0xFF).toByte())
                 } else {
-                    byteBuffer.putFloat(((`val` shr 16 and 0xFF) - IMAGE_MEAN) / IMAGE_STD)
-                    byteBuffer.putFloat(((`val` shr 8 and 0xFF) - IMAGE_MEAN) / IMAGE_STD)
-                    byteBuffer.putFloat(((`val` and 0xFF) - IMAGE_MEAN) / IMAGE_STD)
+                    byteBuffer.putFloat((((value shr 16) and 0xFF) - IMAGE_MEAN) / IMAGE_STD)
+                    byteBuffer.putFloat((((value shr 8) and 0xFF) - IMAGE_MEAN) / IMAGE_STD)
+                    byteBuffer.putFloat(((value and 0xFF) - IMAGE_MEAN) / IMAGE_STD)
                 }
 
             }
@@ -158,7 +158,7 @@ object CarDetectorClassifier: IClassifer{
     override fun recognizeImage(bitmap: Bitmap): List<IClassifer.Recognition> {
         Log.i(Logger.LOGTAG, "Recognizing image bitmap started")
         val startTime = System.currentTimeMillis()
-        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, IMG_WIDTH, IMG_HEIGHT, false)
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, inputSize, inputSize, false)
         val byteBuffer = convertBitmapToByteBuffer(scaledBitmap)
         return if (quant) {
             val result = Array(1) { ByteArray(labelList!!.size) }

@@ -3,6 +3,8 @@ package com.ai.deep.andy.carrecognizer
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
+import android.content.DialogInterface
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 
@@ -33,6 +35,7 @@ import java.io.IOException
 import android.os.AsyncTask.execute
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.support.v7.app.AlertDialog
 import com.ai.deep.andy.carrecognizer.ai.CarDetectorClassifier
 import com.ai.deep.andy.carrecognizer.ai.IClassifer
 import java.util.concurrent.Executors
@@ -44,8 +47,8 @@ private const val CLASSIFY_FRAGMENT_TAG = "ClassifyFragment"
 private var classifier: CarDetectorClassifier? = null
 private val executor = Executors.newSingleThreadExecutor()
 
-private const val MODEL_PATH = "converted_model.tflite"
-private const val QUANT = true
+private const val MODEL_PATH = "converted_model_2.tflite"
+private const val QUANT = false
 private const val LABEL_PATH = "labels.txt"
 private const val INPUT_SIZE = 150
 
@@ -76,19 +79,42 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
             val imgBitmap = BitmapFactory.decodeFile(f.absolutePath)
             Log.i(Logger.LOGTAG, "Image bitmap created, detecting if its a car or not")
             val results : List<IClassifer.Recognition> = classifier!!.recognizeImage(imgBitmap)
-            Log.i(Logger.LOGTAG, results.toString())
-            (fragment as MainFragment).changeToClassifyFragment(imgBitmap)
+            if(!results[0].title?.equals("car")!! || results[0].confidence!! < 90.0f){
+                showAreYouSureDialog(this, fragment, imgBitmap)
+            }
+            else {
+                (fragment as MainFragment).changeToClassifyFragment(imgBitmap)
+            }
         }
     }
-
-    fun selectImageFromGallery(f: Bitmap){
+    
+    private fun selectImageFromGallery(f: Bitmap){
         val fragment: Fragment? = supportFragmentManager?.findFragmentByTag("android:switcher:" + R.id.container + ":" + container.currentItem)
         if(container?.currentItem == 1 && fragment != null){
             Log.i(Logger.LOGTAG, "Image bitmap created, detecting if its a car or not")
             val results : List<IClassifer.Recognition> = classifier!!.recognizeImage(f)
-            Log.i(Logger.LOGTAG, results.toString())
-            (fragment as MainFragment).changeToClassifyFragment(f)
+            if(!results[0].title?.equals("car")!! || results[0].confidence!! < 90.0f){
+                showAreYouSureDialog(this, fragment, f)
+            }
+            else {
+                (fragment as MainFragment).changeToClassifyFragment(f)
+            }
         }
+    }
+
+    fun showAreYouSureDialog(context: Context, fragment: Fragment, imgBitmap: Bitmap){
+        AlertDialog.Builder(context)
+                .setCancelable(false)
+                .setTitle("It's not a car!")
+                .setMessage("It doesn't seem like a car, will you continue?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setNegativeButton("Create new photo") { dialog, _ ->
+                    dialog.dismiss()
+                    Toast.makeText(context, "Try different angle, or check help to get more accurate predictions", Toast.LENGTH_SHORT).show()
+                    goBackToCamera()
+                }.setPositiveButton("Continue") { _, _ ->
+                    (fragment as MainFragment).changeToClassifyFragment(imgBitmap)
+                }.create().show()
     }
 
 
