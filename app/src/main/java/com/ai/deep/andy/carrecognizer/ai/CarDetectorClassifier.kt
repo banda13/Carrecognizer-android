@@ -73,7 +73,7 @@ object CarDetectorClassifier: IClassifer{
     }
 
     private fun convertBitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
-        Log.i(Logger.LOGTAG, "Converting bitmap to bytebuffer..")
+        Log.d(Logger.LOGTAG, "Converting bitmap to bytebuffer..")
         val byteBuffer: ByteBuffer = if (quant) {
             ByteBuffer.allocateDirect(1 * BATCH_SIZE * inputSize * inputSize * PIXEL_SIZE)
         } else {
@@ -156,19 +156,19 @@ object CarDetectorClassifier: IClassifer{
 
 
     override fun recognizeImage(bitmap: Bitmap): List<IClassifer.Recognition> {
-        Log.i(Logger.LOGTAG, "Recognizing image bitmap started")
+        Log.d(Logger.LOGTAG, "Recognizing image bitmap started")
         val startTime = System.currentTimeMillis()
         val scaledBitmap = Bitmap.createScaledBitmap(bitmap, inputSize, inputSize, false)
         val byteBuffer = convertBitmapToByteBuffer(scaledBitmap)
         return if (quant) {
             val result = Array(1) { ByteArray(labelList!!.size) }
             interpreter?.run(byteBuffer, result)
-            Log.i(Logger.LOGTAG, "Classification took " + (System.currentTimeMillis() - startTime) + " MS")
+            Log.d(Logger.LOGTAG, "Classification took " + (System.currentTimeMillis() - startTime) + " MS")
             getSortedResultByte(result)
         } else {
             val result = Array(1) { FloatArray(labelList!!.size) }
             interpreter?.run(byteBuffer, result)
-            Log.i(Logger.LOGTAG, "Classification took " + (System.currentTimeMillis() - startTime) + " MS")
+            Log.d(Logger.LOGTAG, "Classification took " + (System.currentTimeMillis() - startTime) + " MS")
             getSortedResultFloat(result)
         }
     }

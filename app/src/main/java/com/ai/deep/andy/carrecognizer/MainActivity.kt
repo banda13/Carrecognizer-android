@@ -44,7 +44,6 @@ import java.util.concurrent.Executors
 private const val CAMERA_FRAGMENT_TAG = "CameraFragment"
 private const val CLASSIFY_FRAGMENT_TAG = "ClassifyFragment"
 
-private var classifier: CarDetectorClassifier? = null
 private val executor = Executors.newSingleThreadExecutor()
 
 private const val MODEL_PATH = "converted_model_2.tflite"
@@ -58,6 +57,10 @@ private const val CAMERA_REQUEST_CODE = 101
 private const val WRITE_STORAGE_REQUEST_CODE = 102
 
 class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInteraction, ClassifyFragment.OnClassifyFragmentListener {
+
+    companion object {
+        var classifier: CarDetectorClassifier? = null
+    }
 
     override fun selectImageFromGallery() {
         val intent = Intent()
@@ -79,7 +82,8 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
             val imgBitmap = BitmapFactory.decodeFile(f.absolutePath)
             Log.i(Logger.LOGTAG, "Image bitmap created, detecting if its a car or not")
             val results : List<IClassifer.Recognition> = classifier!!.recognizeImage(imgBitmap)
-            if(!results[0].title?.equals("car")!! || results[0].confidence!! < 90.0f){
+            Log.d(Logger.LOGTAG, results.toString())
+            if(!results[0].title?.equals("car")!! || results[0].confidence!! < 0.90f){
                 showAreYouSureDialog(this, fragment, imgBitmap)
             }
             else {
@@ -93,7 +97,8 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
         if(container?.currentItem == 1 && fragment != null){
             Log.i(Logger.LOGTAG, "Image bitmap created, detecting if its a car or not")
             val results : List<IClassifer.Recognition> = classifier!!.recognizeImage(f)
-            if(!results[0].title?.equals("car")!! || results[0].confidence!! < 90.0f){
+            Log.d(Logger.LOGTAG, results.toString())
+            if(results[0].title!!.equals("car") || results[0].confidence!! <= 0.90f){
                 showAreYouSureDialog(this, fragment, f)
             }
             else {

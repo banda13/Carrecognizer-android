@@ -69,7 +69,7 @@ class CameraPreview(
         // start preview with new settings
         mCamera.apply {
             try {
-                mCamera.setDisplayOrientation(90);
+                mCamera.setDisplayOrientation(90)
                 setPreviewDisplay(mHolder)
                 startPreview()
             } catch (e: Exception) {
@@ -77,4 +77,6 @@ class CameraPreview(
             }
         }
     }
+
+
 }

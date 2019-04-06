@@ -2,31 +2,32 @@ package com.ai.deep.andy.carrecognizer.fragments
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
+import android.graphics.Rect
+import android.graphics.YuvImage
 import android.hardware.Camera
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
-import android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
 import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 
-import com.ai.deep.andy.carrecognizer.R
 import android.widget.FrameLayout
 import android.widget.Toast
+import com.ai.deep.andy.carrecognizer.MainActivity
+import com.ai.deep.andy.carrecognizer.ai.IClassifer
 import com.ai.deep.andy.carrecognizer.camera.CameraPreview
 import com.ai.deep.andy.carrecognizer.utils.FileUtils
 import com.ai.deep.andy.carrecognizer.utils.Logger
-import kotlinx.android.synthetic.main.fragment_classification_list.*
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
-import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.*
+import java.io.*
+import android.graphics.BitmapFactory
+import android.graphics.Bitmap
+import android.R.attr.data
+import com.ai.deep.andy.carrecognizer.R
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -40,6 +41,9 @@ class CameraFragment : Fragment() {
     private var safeToTakePicture = true
     private var mCamera: Camera? = null
     private var mPreview: CameraPreview? = null
+
+    private var previewProcessInProgress = false
+    private var wowItsACar = false
 
     private val mPicture = Camera.PictureCallback { data, _ ->
         val pictureFile: File = FileUtils.getTempFile(context!!, MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE) ?: run {
@@ -68,6 +72,8 @@ class CameraFragment : Fragment() {
     private var param2: String? = null
     private var listener: OnCameraFragmentInteraction? = null
 
+    private var captureButton : FloatingActionButton? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -87,11 +93,11 @@ class CameraFragment : Fragment() {
             v.findViewById<FrameLayout>(R.id.camera_preview).addView(it)
         }
 
-        val captureButton: FloatingActionButton = v.findViewById(R.id.capture_image)
-        captureButton.setOnClickListener {
+        captureButton = v.findViewById(R.id.capture_image)
+        captureButton?.setOnClickListener {
             if (safeToTakePicture) {
                 mCamera?.takePicture(null, null, mPicture)
-                safeToTakePicture = false;
+                safeToTakePicture = false
             }
             else{
                 Log.e(Logger.LOGTAG, "Oopsie, taking picture failed, because its not safe now..")
@@ -107,6 +113,52 @@ class CameraFragment : Fragment() {
         return v
     }
 
+    fun start_realtime_detection(){
+        mCamera?.setPreviewCallback { bytes, camera ->
+            run {
+                if(!previewProcessInProgress){
+                    previewProcessInProgress = true
+                    //val imgBitmap : Bitmap = Bitmap.createBitmap(150, 150, Bitmap.Config.ARGB_8888)
+                    //val buffer : ByteBuffer = ByteBuffer.wrap(bytes)
+                    //imgBitmap.copyPixelsFromBuffer(buffer)
+                    val jpegData = ConvertYuvToJpeg(bytes, camera)
+                    val imgBitmap = bytesToBitmap(jpegData)
+                    val results : List<IClassifer.Recognition> = MainActivity.classifier!!.recognizeImage(imgBitmap)
+                    if(results[0].title!!.equals("car") && results[0].confidence!! >= 0.90f){
+                        if(!wowItsACar){
+                            Log.i(Logger.LOGTAG, "Wow its a car, capture it fast!")
+                            captureButton?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context!!, R.color.abc_color_highlight_material))
+                            wowItsACar = true
+                        }
+                    }
+                    else{
+                        if(wowItsACar){
+                            Log.i(Logger.LOGTAG, "Bye bye beautiful car..")
+                            captureButton?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context!!,R.color.material_grey_100))
+                            wowItsACar = false
+                        }
+                    }
+                    previewProcessInProgress = false
+                }
+
+            }
+        }
+    }
+
+    private fun ConvertYuvToJpeg(yuvData: ByteArray, camera: Camera): ByteArray{
+        val cameraParameters = camera.parameters
+        val width = cameraParameters.previewSize.width
+        val height = cameraParameters.previewSize.height
+        val yuv = YuvImage(yuvData, cameraParameters.previewFormat, width, height, null)
+        val ms = ByteArrayOutputStream()
+        val quality = 80 // adjust this as needed
+        yuv.compressToJpeg(Rect(0, 0, width, height), quality, ms)
+        return ms.toByteArray()
+    }
+
+    fun bytesToBitmap(imageBytes: ByteArray): Bitmap {
+        return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -123,6 +175,7 @@ class CameraFragment : Fragment() {
             CameraPreview(context, it)
         }
         this.safeToTakePicture = true
+        start_realtime_detection()
     }
 
     override fun onDetach() {
