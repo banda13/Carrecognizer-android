@@ -3,8 +3,6 @@ package com.ai.deep.andy.carrecognizer.fragments
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import android.graphics.Rect
-import android.graphics.YuvImage
 import android.hardware.Camera
 import android.os.Bundle
 import android.provider.MediaStore
@@ -24,10 +22,18 @@ import com.ai.deep.andy.carrecognizer.camera.CameraPreview
 import com.ai.deep.andy.carrecognizer.utils.FileUtils
 import com.ai.deep.andy.carrecognizer.utils.Logger
 import java.io.*
-import android.graphics.BitmapFactory
-import android.graphics.Bitmap
 import android.R.attr.data
+import android.graphics.*
 import com.ai.deep.andy.carrecognizer.R
+import com.ai.deep.andy.carrecognizer.utils.ImageUtils.bytesToBitmap
+import com.ai.deep.andy.carrecognizer.utils.ImageUtils.convertYuvToJpeg
+import android.R.attr.start
+import android.view.animation.Animation
+import android.animation.ObjectAnimator
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
+import android.view.animation.AnimationUtils
+import com.ai.deep.andy.carrecognizer.utils.MyAnimationUtils
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -46,11 +52,12 @@ class CameraFragment : Fragment() {
     private var wowItsACar = false
 
     private val mPicture = Camera.PictureCallback { data, _ ->
-        val pictureFile: File = FileUtils.getTempFile(context!!, MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE) ?: run {
-            Log.d(Logger.LOGTAG, ("Error creating media file, check storage permissions"))
-            safeToTakePicture = true
-            return@PictureCallback
-        }
+        val pictureFile: File = FileUtils.getTempFile(context!!, MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE)
+                ?: run {
+                    Log.d(Logger.LOGTAG, ("Error creating media file, check storage permissions"))
+                    safeToTakePicture = true
+                    return@PictureCallback
+                }
 
         try {
             val fos = FileOutputStream(pictureFile)
@@ -72,7 +79,7 @@ class CameraFragment : Fragment() {
     private var param2: String? = null
     private var listener: OnCameraFragmentInteraction? = null
 
-    private var captureButton : FloatingActionButton? = null
+    private var captureButton: FloatingActionButton? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,9 +92,9 @@ class CameraFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        val v =  inflater.inflate(R.layout.fragment_camera, container, false)
+        val v = inflater.inflate(R.layout.fragment_camera, container, false)
         mPreview?.also {
-            if(it.parent != null){
+            if (it.parent != null) {
                 (it.parent as ViewGroup).removeView(it)
             }
             v.findViewById<FrameLayout>(R.id.camera_preview).addView(it)
@@ -98,14 +105,13 @@ class CameraFragment : Fragment() {
             if (safeToTakePicture) {
                 mCamera?.takePicture(null, null, mPicture)
                 safeToTakePicture = false
-            }
-            else{
+            } else {
                 Log.e(Logger.LOGTAG, "Oopsie, taking picture failed, because its not safe now..")
                 Toast.makeText(context, "Its not safe to create picture now!", Toast.LENGTH_SHORT).show()
             }
         }
 
-        val galleryButton :FloatingActionButton = v.findViewById(R.id.gallery_button)
+        val galleryButton: FloatingActionButton = v.findViewById(R.id.gallery_button)
         galleryButton.setOnClickListener {
             listener?.selectImageFromGallery()
         }
@@ -113,52 +119,46 @@ class CameraFragment : Fragment() {
         return v
     }
 
-    fun start_realtime_detection(){
+    private fun start_realtime_detection() {
         mCamera?.setPreviewCallback { bytes, camera ->
             run {
-                if(!previewProcessInProgress){
+                if (!previewProcessInProgress) {
                     previewProcessInProgress = true
                     //val imgBitmap : Bitmap = Bitmap.createBitmap(150, 150, Bitmap.Config.ARGB_8888)
                     //val buffer : ByteBuffer = ByteBuffer.wrap(bytes)
                     //imgBitmap.copyPixelsFromBuffer(buffer)
-                    val jpegData = ConvertYuvToJpeg(bytes, camera)
+                    val jpegData = convertYuvToJpeg(bytes, camera)
                     val imgBitmap = bytesToBitmap(jpegData)
-                    val results : List<IClassifer.Recognition> = MainActivity.classifier!!.recognizeImage(imgBitmap)
-                    if(results[0].title!!.equals("car") && results[0].confidence!! >= 0.90f){
-                        if(!wowItsACar){
+                    val results: List<IClassifer.Recognition> = MainActivity.classifier!!.recognizeImage(imgBitmap)
+                    if (results[0].title!!.equals("car") && results[0].confidence!! >= 0.90f) {
+                        if (!wowItsACar) {
                             Log.i(Logger.LOGTAG, "Wow its a car, capture it fast!")
-                            captureButton?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context!!, R.color.abc_color_highlight_material))
-                            wowItsACar = true
-                        }
-                    }
-                    else{
-                        if(wowItsACar){
-                            Log.i(Logger.LOGTAG, "Bye bye beautiful car..")
-                            captureButton?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context!!,R.color.material_grey_100))
-                            wowItsACar = false
-                        }
-                    }
-                    previewProcessInProgress = false
-                }
+                            MyAnimationUtils.playCaptureButtonAnimation(true, context!!, captureButton!!, 300, (object : MyAnimationUtils.carDetectorAnimationCallback {
+                                override fun animationEnded() {
+                                    previewProcessInProgress = false
+                                }
+                            }))
 
+                        } else {
+                            previewProcessInProgress = false
+                        }
+                    } else {
+                        if (wowItsACar) {
+                            Log.i(Logger.LOGTAG, "Bye bye beautiful car..")
+                            MyAnimationUtils.playCaptureButtonAnimation(false, context!!, captureButton!!, 300, (object : MyAnimationUtils.carDetectorAnimationCallback {
+                                override fun animationEnded() {
+                                    previewProcessInProgress = false
+                                }
+                            }))
+                        } else {
+                            previewProcessInProgress = false
+                        }
+                    }
+                }
             }
         }
     }
-
-    private fun ConvertYuvToJpeg(yuvData: ByteArray, camera: Camera): ByteArray{
-        val cameraParameters = camera.parameters
-        val width = cameraParameters.previewSize.width
-        val height = cameraParameters.previewSize.height
-        val yuv = YuvImage(yuvData, cameraParameters.previewFormat, width, height, null)
-        val ms = ByteArrayOutputStream()
-        val quality = 80 // adjust this as needed
-        yuv.compressToJpeg(Rect(0, 0, width, height), quality, ms)
-        return ms.toByteArray()
-    }
-
-    fun bytesToBitmap(imageBytes: ByteArray): Bitmap {
-        return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-    }
+    
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -186,7 +186,7 @@ class CameraFragment : Fragment() {
 
 
     interface OnCameraFragmentInteraction {
-        fun captureImageWithCamera(f:  File)
+        fun captureImageWithCamera(f: File)
         fun selectImageFromGallery()
     }
 
