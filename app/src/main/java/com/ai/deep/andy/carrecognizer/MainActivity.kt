@@ -130,7 +130,6 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        setSupportActionBar(toolbar)
         mSectionsPagerAdapter = SectionsPagerAdapter(supportFragmentManager)
 
         container.adapter = mSectionsPagerAdapter

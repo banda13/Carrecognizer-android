@@ -73,7 +73,7 @@ class ClassificationListFragment : Fragment() {
                 }
 
                 override fun onFailure(e: Exception) {
-                    Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
+                    Log.e(Logger.LOGTAG, "Failed to load more", e)
                     initAdapter(recycleView!!)
                     isLoading = false
                     showEmptyPlaceHolderIfNeeded()

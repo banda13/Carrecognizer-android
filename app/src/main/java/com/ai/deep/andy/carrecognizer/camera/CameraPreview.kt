@@ -1,28 +1,28 @@
 package com.ai.deep.andy.carrecognizer.camera
 
 import android.content.Context
+import android.graphics.Rect
 import android.hardware.Camera
-import android.net.Uri
-import android.os.Environment
-import android.provider.MediaStore
-import android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
-import android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO
 import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import com.ai.deep.andy.carrecognizer.utils.Logger
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
 import java.io.IOException
-import java.text.SimpleDateFormat
 import java.util.*
+import android.hardware.Camera.AutoFocusCallback
+import android.os.Handler
+import android.view.MotionEvent
+
+
+
+
 
 /** A basic Camera preview class */
 class CameraPreview(
         context: Context,
         private val mCamera: Camera
 ) : SurfaceView(context), SurfaceHolder.Callback {
+
 
     private val mHolder: SurfaceHolder = holder.apply {
         // Install a SurfaceHolder.Callback so we get notified when the
@@ -77,6 +77,4 @@ class CameraPreview(
             }
         }
     }
-
-
 }

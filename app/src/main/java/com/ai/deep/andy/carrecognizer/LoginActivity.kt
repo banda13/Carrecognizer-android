@@ -427,7 +427,6 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                         }
 
                         override fun onFailure(e: Exception) {
-                            Toast.makeText(context, "Failed to login because " + e.message, Toast.LENGTH_SHORT).show()
                             success = false
                             done = true
                         }

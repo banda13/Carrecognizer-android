@@ -74,6 +74,7 @@
             android:id="@+id/logout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:backgroundTint="@color/secondaryColor"
             android:layout_margin="@dimen/fab_margin"
             android:layout_gravity="bottom|end"
             android:src="@drawable/ic_action_back" />
