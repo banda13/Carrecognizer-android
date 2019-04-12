@@ -27,6 +27,10 @@ import com.ai.deep.andy.carrecognizer.utils.ImageUtils.bytesToBitmap
 import com.ai.deep.andy.carrecognizer.utils.ImageUtils.convertYuvToJpeg
 import com.ai.deep.andy.carrecognizer.ai.CleverCache
 import com.ai.deep.andy.carrecognizer.utils.MyAnimationUtils
+import android.preference.PreferenceManager
+import android.content.SharedPreferences
+
+
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -118,7 +122,7 @@ class CameraFragment : Fragment() {
         return v
     }
 
-    private fun start_realtime_detection() {
+    private fun start_realtime_detection(withCache: Boolean) {
         mCamera?.setPreviewCallback { bytes, camera ->
             run {
                 if (!previewProcessInProgress) {
@@ -130,7 +134,7 @@ class CameraFragment : Fragment() {
                     val imgBitmap = bytesToBitmap(jpegData)
                     val results: List<IClassifer.Recognition> = MainActivity.classifier!!.recognizeImage(imgBitmap)
                     val carAccuracy = results.find { it.title == "car" }
-                    if(carAccuracy?.confidence != null) {
+                    if(withCache && carAccuracy?.confidence != null) {
                         CleverCache().put(imgBitmap, carAccuracy.confidence)
                     }
                     if (results[0].title!! == "car" && results[0].confidence!! >= 0.90f) {
@@ -168,7 +172,7 @@ class CameraFragment : Fragment() {
         if (context is OnCameraFragmentInteraction) {
             listener = context
         } else {
-            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
+            throw RuntimeException("$context must implement OnFragmentInteractionListener")
         }
 
         mCamera = getCameraInstance()
@@ -178,7 +182,20 @@ class CameraFragment : Fragment() {
             CameraPreview(context, it)
         }
         this.safeToTakePicture = true
-        start_realtime_detection()
+        val settings = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+        if(settings.getBoolean("clever_pre_recognition", true)){
+            if(settings.getBoolean("enable_clever_cache", true)){
+                start_realtime_detection(true)
+            }
+            else{
+                start_realtime_detection(false)
+                Toast.makeText(context, "Enable clever cache to increase image quality", Toast.LENGTH_LONG).show()
+            }
+        }
+        else{
+            Toast.makeText(context, "Enable clever pre-classification to increase accuracy", Toast.LENGTH_LONG).show()
+        }
+
     }
 
     override fun onDetach() {

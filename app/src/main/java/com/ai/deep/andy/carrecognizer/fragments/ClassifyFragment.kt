@@ -15,6 +15,7 @@ import java.io.File
 import android.graphics.BitmapFactory
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.preference.PreferenceManager
 import android.provider.MediaStore
 import android.support.design.widget.Snackbar
 import android.util.Log
@@ -27,6 +28,9 @@ import com.ai.deep.andy.carrecognizer.services.core.ListClassificationService
 import com.ai.deep.andy.carrecognizer.services.statistics.AvgClassificationTimeService
 import com.ai.deep.andy.carrecognizer.utils.ClassifierUtils
 import com.ai.deep.andy.carrecognizer.utils.FileUtils
+import com.ai.deep.andy.carrecognizer.utils.GlobalConstants.Companion.HIGHCOMPRESSIONSIZE
+import com.ai.deep.andy.carrecognizer.utils.GlobalConstants.Companion.MEDIUMCOMPRESSIONSIZE
+import com.ai.deep.andy.carrecognizer.utils.GlobalConstants.Companion.SUPERHIGHCOMPRESSIONSIZE
 import com.ai.deep.andy.carrecognizer.utils.Logger
 import kotlinx.android.synthetic.main.fragment_classify.*
 import org.json.JSONObject
@@ -128,6 +132,8 @@ class ClassifyFragment : Fragment() {
         changeLayout(ClassificationState.IN_PROGRESS)
         number_progress_bar.progress = 0
 
+        compressImage()
+
         val t = Thread(Runnable {
             for (i in 1..processResolution) {
                 try {
@@ -170,6 +176,33 @@ class ClassifyFragment : Fragment() {
                 setError(errorMsg)
             }
         }).classifyImage(imageBitmap!!)
+    }
+
+    private fun compressImage(){
+        val settings = PreferenceManager.getDefaultSharedPreferences(context?.applicationContext)
+        val compressRate = settings.getInt("compress_rate", 1)
+        when (compressRate) {
+            1 -> {
+                Log.i(Logger.LOGTAG, "Picture not compressed")
+            }
+            2 -> {
+                imageBitmap = Bitmap.createScaledBitmap(imageBitmap, MEDIUMCOMPRESSIONSIZE, MEDIUMCOMPRESSIONSIZE, false)
+                Log.i(Logger.LOGTAG, "Picture compress into $MEDIUMCOMPRESSIONSIZE")
+            }
+            3 -> {
+                imageBitmap = Bitmap.createScaledBitmap(imageBitmap, HIGHCOMPRESSIONSIZE, HIGHCOMPRESSIONSIZE, false)
+                Log.i(Logger.LOGTAG, "Picture compress into $HIGHCOMPRESSIONSIZE")
+
+            }
+            4 -> {
+                imageBitmap = Bitmap.createScaledBitmap(imageBitmap, SUPERHIGHCOMPRESSIONSIZE, SUPERHIGHCOMPRESSIONSIZE, false)
+                Log.i(Logger.LOGTAG, "Picture compress into $SUPERHIGHCOMPRESSIONSIZE")
+
+            }
+            else -> {
+                Log.i(Logger.LOGTAG, "Picture not compressed")
+            }
+        }
     }
 
     fun saveImage(){

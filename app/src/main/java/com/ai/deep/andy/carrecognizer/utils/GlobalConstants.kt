@@ -12,5 +12,10 @@ class GlobalConstants {
         const val CORE_URL = BASEURL + "core/"
 
         const val FILES_URL = CORE_URL + "file/"
+
+        const val NOCOMPRESSINSIZE = 0
+        const val MEDIUMCOMPRESSIONSIZE = 420
+        const val HIGHCOMPRESSIONSIZE = 320
+        const val SUPERHIGHCOMPRESSIONSIZE = 220
     }
 }

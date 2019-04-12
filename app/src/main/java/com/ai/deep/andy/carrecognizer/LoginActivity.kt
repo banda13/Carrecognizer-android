@@ -25,6 +25,8 @@ import android.Manifest.permission.READ_CONTACTS
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.content.SharedPreferences
+import android.preference.PreferenceManager
 import android.provider.Settings
 import android.service.autofill.RegexValidator
 import android.util.Log
@@ -34,6 +36,7 @@ import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
 import com.ai.deep.andy.carrecognizer.services.users.LoginService
 import com.ai.deep.andy.carrecognizer.services.users.RegistrationService
 import com.ai.deep.andy.carrecognizer.utils.ErrorUtils
+import com.ai.deep.andy.carrecognizer.utils.Logger
 import com.android.volley.TimeoutError
 import com.orm.SugarRecord
 
@@ -64,8 +67,21 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             }
             false
         })
+        val settings: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        if(settings.getBoolean("keep_user_logged_in", true)){
+            loadCachedUser()
+        }
+        else{
+            Log.i(Logger.LOGTAG, "Auto login disabled")
+        }
 
-        loadCachedUser()
+        if(!settings.getBoolean("enable_anonimus_usage", true)){
+            continue_without_login.visibility = View.GONE
+        }
+        else{
+            Log.i(Logger.LOGTAG, "Anonimus login disabled")
+        }
+
 
         email_sign_in_button.setOnClickListener { attemptRegistration() }
 
