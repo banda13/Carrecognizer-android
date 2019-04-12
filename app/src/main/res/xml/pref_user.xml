@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="keep_user_logged_in"
+        android:title="Keep user logged in" />
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="enable_anonimus_usage"
+        android:title="Enable usage without login" />
+</PreferenceScreen>

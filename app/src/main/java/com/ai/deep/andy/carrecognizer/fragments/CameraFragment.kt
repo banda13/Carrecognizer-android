@@ -1,14 +1,13 @@
 package com.ai.deep.andy.carrecognizer.fragments
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.ColorStateList
 import android.hardware.Camera
 import android.os.Bundle
 import android.provider.MediaStore
 import android.support.design.widget.FloatingActionButton
 import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -22,17 +21,10 @@ import com.ai.deep.andy.carrecognizer.camera.CameraPreview
 import com.ai.deep.andy.carrecognizer.utils.FileUtils
 import com.ai.deep.andy.carrecognizer.utils.Logger
 import java.io.*
-import android.R.attr.data
-import android.graphics.*
 import com.ai.deep.andy.carrecognizer.R
+import com.ai.deep.andy.carrecognizer.SettingsActivity
 import com.ai.deep.andy.carrecognizer.utils.ImageUtils.bytesToBitmap
 import com.ai.deep.andy.carrecognizer.utils.ImageUtils.convertYuvToJpeg
-import android.R.attr.start
-import android.view.animation.Animation
-import android.animation.ObjectAnimator
-import android.animation.ArgbEvaluator
-import android.animation.ValueAnimator
-import android.view.animation.AnimationUtils
 import com.ai.deep.andy.carrecognizer.ai.CleverCache
 import com.ai.deep.andy.carrecognizer.utils.MyAnimationUtils
 
@@ -115,6 +107,12 @@ class CameraFragment : Fragment() {
         val galleryButton: FloatingActionButton = v.findViewById(R.id.gallery_button)
         galleryButton.setOnClickListener {
             listener?.selectImageFromGallery()
+        }
+
+        val settingsButton : FloatingActionButton = v.findViewById(R.id.settings_button)
+        settingsButton.setOnClickListener {
+            val intent = Intent(context, SettingsActivity::class.java)
+            context?.startActivity(intent)
         }
 
         return v
