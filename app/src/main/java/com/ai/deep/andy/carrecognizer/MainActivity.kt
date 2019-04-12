@@ -1,28 +1,20 @@
 package com.ai.deep.andy.carrecognizer
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.content.DialogInterface
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentPagerAdapter
-import android.support.v4.view.ViewPager
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import com.ai.deep.andy.carrecognizer.fragments.*
 
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_main.view.*
 import java.io.File
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -32,11 +24,11 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import com.ai.deep.andy.carrecognizer.utils.Logger
 import java.io.IOException
-import android.os.AsyncTask.execute
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import com.ai.deep.andy.carrecognizer.ai.CarDetectorClassifier
+import com.ai.deep.andy.carrecognizer.ai.CleverCache
 import com.ai.deep.andy.carrecognizer.ai.IClassifer
 import java.util.concurrent.Executors
 
@@ -79,14 +71,17 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
     override fun captureImageWithCamera(f: File) {
         val fragment: Fragment? = supportFragmentManager?.findFragmentByTag("android:switcher:" + R.id.container + ":" + container.currentItem)
         if(container?.currentItem == 1 && fragment != null){
-            val imgBitmap = BitmapFactory.decodeFile(f.absolutePath)
+            var imgBitmap = BitmapFactory.decodeFile(f.absolutePath)
             Log.i(Logger.LOGTAG, "Image bitmap created, detecting if its a car or not")
             val results : List<IClassifer.Recognition> = classifier!!.recognizeImage(imgBitmap)
             Log.d(Logger.LOGTAG, results.toString())
+            // replace bitmap a better one from cache if can
+            imgBitmap = updateBitmapFromCache(imgBitmap, results)
             if(!results[0].title?.equals("car")!! || results[0].confidence!! < 0.90f){
                 showAreYouSureDialog(this, fragment, imgBitmap)
             }
             else {
+                CleverCache().clear()
                 (fragment as MainFragment).changeToClassifyFragment(imgBitmap)
             }
         }
@@ -98,16 +93,27 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
             Log.i(Logger.LOGTAG, "Image bitmap created, detecting if its a car or not")
             val results : List<IClassifer.Recognition> = classifier!!.recognizeImage(f)
             Log.d(Logger.LOGTAG, results.toString())
-            if(results[0].title!!.equals("car") || results[0].confidence!! <= 0.90f){
+            if(results[0].title!! == "car" || results[0].confidence!! <= 0.90f){
                 showAreYouSureDialog(this, fragment, f)
             }
             else {
+
                 (fragment as MainFragment).changeToClassifyFragment(f)
             }
         }
     }
 
-    fun showAreYouSureDialog(context: Context, fragment: Fragment, imgBitmap: Bitmap){
+    private fun updateBitmapFromCache(img : Bitmap, results : List<IClassifer.Recognition>): Bitmap{
+        val conf = results.find { it.title == "car" }?.confidence
+        return if(conf == null){
+            img
+        }
+        else{
+            CleverCache().getBest(conf) ?: img
+        }
+    }
+
+    private fun showAreYouSureDialog(context: Context, fragment: Fragment, imgBitmap: Bitmap){
         AlertDialog.Builder(context)
                 .setCancelable(false)
                 .setTitle("It's not a car!")
@@ -120,6 +126,7 @@ class MainActivity : AppCompatActivity(), CameraFragment.OnCameraFragmentInterac
                     goBackToCamera()
                 }.setPositiveButton("Continue") { _, _ ->
                     (fragment as MainFragment).changeToClassifyFragment(imgBitmap)
+                    CleverCache().clear()
                 }.create().show()
     }
 

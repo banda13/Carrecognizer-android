@@ -33,6 +33,7 @@ import android.animation.ObjectAnimator
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.view.animation.AnimationUtils
+import com.ai.deep.andy.carrecognizer.ai.CleverCache
 import com.ai.deep.andy.carrecognizer.utils.MyAnimationUtils
 
 
@@ -130,7 +131,11 @@ class CameraFragment : Fragment() {
                     val jpegData = convertYuvToJpeg(bytes, camera)
                     val imgBitmap = bytesToBitmap(jpegData)
                     val results: List<IClassifer.Recognition> = MainActivity.classifier!!.recognizeImage(imgBitmap)
-                    if (results[0].title!!.equals("car") && results[0].confidence!! >= 0.90f) {
+                    val carAccuracy = results.find { it.title == "car" }
+                    if(carAccuracy?.confidence != null) {
+                        CleverCache().put(imgBitmap, carAccuracy.confidence)
+                    }
+                    if (results[0].title!! == "car" && results[0].confidence!! >= 0.90f) {
                         if (!wowItsACar) {
                             Log.i(Logger.LOGTAG, "Wow its a car, capture it fast!")
                             MyAnimationUtils.playCaptureButtonAnimation(true, context!!, captureButton!!, 300, (object : MyAnimationUtils.carDetectorAnimationCallback {
