@@ -9,6 +9,9 @@ import android.support.design.widget.FloatingActionButton
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import com.ai.deep.andy.carrecognizer.R
+import nl.dionsegijn.konfetti.KonfettiView
+import nl.dionsegijn.konfetti.models.Shape
+import nl.dionsegijn.konfetti.models.Size
 import org.json.JSONObject
 
 object MyAnimationUtils {
@@ -74,5 +77,21 @@ object MyAnimationUtils {
         colorAnimation.start()
         target.startAnimation(myAnim)
 
+    }
+
+    fun showKonfetti(view: KonfettiView?){
+        if(view == null){
+            return
+        }
+        view.build()
+                .addColors(Color.YELLOW, Color.GREEN, Color.MAGENTA)
+                .setDirection(0.0, 359.0)
+                .setSpeed(1f, 5f)
+                .setFadeOutEnabled(true)
+                .setTimeToLive(2000L)
+                .addShapes(Shape.RECT, Shape.CIRCLE)
+                .addSizes(Size(12))
+                .setPosition(-50f, view.width + 50f, -50f, -50f)
+                .streamFor(300, 5000L)
     }
 }

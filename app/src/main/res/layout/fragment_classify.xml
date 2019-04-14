@@ -14,6 +14,12 @@
         android:orientation="vertical"
         android:weightSum="10">
 
+        <nl.dionsegijn.konfetti.KonfettiView
+            android:id="@+id/viewKonfetti"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0"/>
+
         <ImageView
             android:id="@+id/my_image_container"
             android:layout_width="match_parent"

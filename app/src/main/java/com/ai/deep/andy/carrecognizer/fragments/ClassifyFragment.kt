@@ -32,7 +32,9 @@ import com.ai.deep.andy.carrecognizer.utils.GlobalConstants.Companion.HIGHCOMPRE
 import com.ai.deep.andy.carrecognizer.utils.GlobalConstants.Companion.MEDIUMCOMPRESSIONSIZE
 import com.ai.deep.andy.carrecognizer.utils.GlobalConstants.Companion.SUPERHIGHCOMPRESSIONSIZE
 import com.ai.deep.andy.carrecognizer.utils.Logger
+import com.ai.deep.andy.carrecognizer.utils.MyAnimationUtils
 import kotlinx.android.synthetic.main.fragment_classify.*
+import nl.dionsegijn.konfetti.KonfettiView
 import org.json.JSONObject
 import java.io.FileOutputStream
 import java.io.IOException
@@ -50,6 +52,7 @@ class ClassifyFragment : Fragment() {
     private var param2: String? = null
     private var listener: OnClassifyFragmentListener? = null
     private var frameLayout : FrameLayout? = null
+    private var konfettiView : KonfettiView? = null
 
     private var averageClassificationTime = 0
     private var processStep = 0
@@ -81,6 +84,8 @@ class ClassifyFragment : Fragment() {
         frameLayout = v.findViewById(R.id.frame_container)
         v.findViewById<ImageView>(R.id.my_image_container).setImageBitmap(imageBitmap)
         classifyButton.isEnabled = false
+
+        konfettiView = v.findViewById(R.id.viewKonfetti)
 
         AvgClassificationTimeService(context!!, object : VolleyOnEventListener<Int>{
             override fun onSuccess(obj: Int) {
@@ -164,6 +169,10 @@ class ClassifyFragment : Fragment() {
                 classify_button?.visibility = View.GONE
 
                 classification_results?.text = ClassifierUtils.formatClassifierResult(obj)
+                val settings = PreferenceManager.getDefaultSharedPreferences(context?.applicationContext)
+                if(settings.getBoolean("extra_anim", true)){
+                    MyAnimationUtils.showKonfetti(konfettiView)
+                }
             }
 
             override fun onFailure(e: Exception) {
@@ -180,6 +189,7 @@ class ClassifyFragment : Fragment() {
 
     private fun compressImage(){
         val settings = PreferenceManager.getDefaultSharedPreferences(context?.applicationContext)
+        val comp = settings.getString("compress_rate", null)
         val compressRate = settings.getInt("compress_rate", 1)
         when (compressRate) {
             1 -> {
