@@ -86,12 +86,12 @@ object MyAnimationUtils {
         view.build()
                 .addColors(Color.YELLOW, Color.GREEN, Color.MAGENTA)
                 .setDirection(0.0, 359.0)
-                .setSpeed(1f, 5f)
+                .setSpeed(2f, 5f)
                 .setFadeOutEnabled(true)
                 .setTimeToLive(2000L)
                 .addShapes(Shape.RECT, Shape.CIRCLE)
                 .addSizes(Size(12))
                 .setPosition(-50f, view.width + 50f, -50f, -50f)
-                .streamFor(300, 5000L)
+                .streamFor(300, 3000L)
     }
 }

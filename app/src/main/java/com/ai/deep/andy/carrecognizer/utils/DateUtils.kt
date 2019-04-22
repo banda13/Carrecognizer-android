@@ -8,12 +8,12 @@ object DateUtils {
     @SuppressLint("SimpleDateFormat")
     @JvmStatic
     fun toSimpleString(date: java.util.Date?) : String {
-        val format = SimpleDateFormat("dd/MM/yyy")
-        if(date == null) {
-            return "null"
+        val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        return if(date == null) {
+            "null"
         }
         else{
-            return format.format(date)
+            format.format(date)
         }
     }
 

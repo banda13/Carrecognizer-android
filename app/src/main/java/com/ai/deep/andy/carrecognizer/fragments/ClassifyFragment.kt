@@ -168,7 +168,7 @@ class ClassifyFragment : Fragment() {
                 changeLayout(ClassificationState.DONE)
                 classify_button?.visibility = View.GONE
 
-                classification_results?.text = ClassifierUtils.formatClassifierResult(obj)
+                classification_results?.text = ClassificationItem(obj).getFormattedResults()
                 val settings = PreferenceManager.getDefaultSharedPreferences(context?.applicationContext)
                 if(settings.getBoolean("extra_anim", true)){
                     MyAnimationUtils.showKonfetti(konfettiView)

@@ -17,5 +17,7 @@ class GlobalConstants {
         const val MEDIUMCOMPRESSIONSIZE = 420
         const val HIGHCOMPRESSIONSIZE = 320
         const val SUPERHIGHCOMPRESSIONSIZE = 220
+
+        const val maxResults = 5
     }
 }
