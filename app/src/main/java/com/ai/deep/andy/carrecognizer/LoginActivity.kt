@@ -271,10 +271,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         return password.length > 4
     }
 
-    @SuppressLint("ObsoleteSdkInt")
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private fun showProgress(show: Boolean) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
             val shortAnimTime = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
 
             login_form.visibility = if (show) View.GONE else View.VISIBLE
@@ -296,12 +293,6 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                             login_progress.visibility = if (show) View.VISIBLE else View.GONE
                         }
                     })
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            login_progress.visibility = if (show) View.VISIBLE else View.GONE
-            login_form.visibility = if (show) View.GONE else View.VISIBLE
-        }
     }
 
     override fun onCreateLoader(i: Int, bundle: Bundle?): Loader<Cursor> {
@@ -359,8 +350,8 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                                                    private val context: Activity) : AsyncTask<Void, Void, Boolean>() {
 
         override fun doInBackground(vararg params: Void): Boolean? {
-            var done: Boolean = false
-            var success : Boolean = false
+            var done = false
+            var success = false
 
             LoginService(applicationContext, object : VolleyOnEventListener<JSONObject>{
                 override fun onSuccess(obj: JSONObject) {
@@ -372,7 +363,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                     lastErrorMessage = if(e is TimeoutError){
                         "Server is not available, check your internet connection"
                     } else{
-                        "Unable to login: " + e.message
+                        "Email or password not correct"
                     }
                     ErrorUtils.logError(lastErrorMessage, e, ErrorUtils.ErrorCode.USER_LOGIN_FAILED)
                     success = false
@@ -394,7 +385,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                 context.startActivity(intent)
                 finish()
             } else {
-                Toast.makeText(context, lastErrorMessage, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, lastErrorMessage, Toast.LENGTH_LONG).show()
             }
         }
 
@@ -404,15 +395,15 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         }
     }
 
-    inner class UserSignInTask internal constructor(private val mEmail: String,
+     inner class UserSignInTask internal constructor(private val mEmail: String,
                                                    private val mPassword: String,
                                                    private val mFirstName: String,
                                                    private val mLastName: String,
                                                    private val context: Activity) : AsyncTask<Void, Void, Boolean>() {
 
         override fun doInBackground(vararg params: Void): Boolean? {
-            var done: Boolean = false
-            var success : Boolean = false
+            var done = false
+            var success = false
 
             RegistrationService(applicationContext, object : VolleyOnEventListener<JSONObject>{
                 override fun onSuccess(obj: JSONObject) {
@@ -426,7 +417,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                             lastErrorMessage = if(e is TimeoutError){
                                 "Server is not available, check your internet connection"
                             } else{
-                                "Unable to login: " + e.message
+                                "Email or password not correct"
                             }
                             ErrorUtils.logError(lastErrorMessage, e, ErrorUtils.ErrorCode.USER_LOGIN_FAILED)
                             success = false
@@ -443,6 +434,12 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                         }
 
                         override fun onFailure(e: Exception) {
+                            lastErrorMessage = if(e is TimeoutError){
+                                "Server is not available, check your internet connection"
+                            } else{
+                                "Registration failed, because this email already exists: " + mEmail.split("@")[0]
+                            }
+                            ErrorUtils.logError(lastErrorMessage, e, ErrorUtils.ErrorCode.USER_LOGIN_FAILED)
                             success = false
                             done = true
                         }
@@ -465,7 +462,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                 context.startActivity(intent)
                 finish()
             } else {
-                Toast.makeText(context, lastErrorMessage, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, lastErrorMessage, Toast.LENGTH_LONG).show()
             }
         }
 

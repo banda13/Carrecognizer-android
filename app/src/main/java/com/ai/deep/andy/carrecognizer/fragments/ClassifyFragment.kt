@@ -190,21 +190,20 @@ class ClassifyFragment : Fragment() {
     private fun compressImage(){
         val settings = PreferenceManager.getDefaultSharedPreferences(context?.applicationContext)
         val comp = settings.getString("compress_rate", null)
-        val compressRate = settings.getInt("compress_rate", 1)
-        when (compressRate) {
-            1 -> {
+        when (comp) {
+            "1" -> {
                 Log.i(Logger.LOGTAG, "Picture not compressed")
             }
-            2 -> {
+            "2" -> {
                 imageBitmap = Bitmap.createScaledBitmap(imageBitmap, MEDIUMCOMPRESSIONSIZE, MEDIUMCOMPRESSIONSIZE, false)
                 Log.i(Logger.LOGTAG, "Picture compress into $MEDIUMCOMPRESSIONSIZE")
             }
-            3 -> {
+            "3" -> {
                 imageBitmap = Bitmap.createScaledBitmap(imageBitmap, HIGHCOMPRESSIONSIZE, HIGHCOMPRESSIONSIZE, false)
                 Log.i(Logger.LOGTAG, "Picture compress into $HIGHCOMPRESSIONSIZE")
 
             }
-            4 -> {
+            "4" -> {
                 imageBitmap = Bitmap.createScaledBitmap(imageBitmap, SUPERHIGHCOMPRESSIONSIZE, SUPERHIGHCOMPRESSIONSIZE, false)
                 Log.i(Logger.LOGTAG, "Picture compress into $SUPERHIGHCOMPRESSIONSIZE")
 

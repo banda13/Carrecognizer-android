@@ -22,6 +22,8 @@ class ClassifyService(context: Context, callback: VolleyOnEventListener<JSONObje
 
     var context: Context? = context
     var queue: RequestQueue? = null
+    var retryPolicy: RetryPolicy? = null
+    private val timeout = 20000
     var mCallBack: VolleyOnEventListener<JSONObject>? = callback
     //val BASE_URL = "http://carrecognizer.northeurope.cloudapp.azure.com/core/"
     val BASE_URL = "http://176.63.245.216:1235/core/classify/"
@@ -29,6 +31,8 @@ class ClassifyService(context: Context, callback: VolleyOnEventListener<JSONObje
 
     init {
         this.queue = Volley.newRequestQueue(context)
+        Log.i(Logger.LOGTAG, "Classification request timeout changed from ${DefaultRetryPolicy.DEFAULT_TIMEOUT_MS} to $timeout")
+        this.retryPolicy = DefaultRetryPolicy(timeout,DefaultRetryPolicy.DEFAULT_MAX_RETRIES,DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
     }
 
     fun getUser(): User? {
@@ -52,7 +56,9 @@ class ClassifyService(context: Context, callback: VolleyOnEventListener<JSONObje
                     Log.d(Logger.LOGTAG, response.toString())
                     mCallBack?.onSuccess(response)
                 }, Response.ErrorListener { error ->
-            Log.e(Logger.LOGTAG, error.networkResponse.statusCode.toString())
+            if(error.networkResponse != null) {
+                Log.e(Logger.LOGTAG, error.networkResponse.statusCode.toString())
+            }
             mCallBack?.onFailure(error)
         }) {
 
@@ -75,6 +81,7 @@ class ClassifyService(context: Context, callback: VolleyOnEventListener<JSONObje
             }
         }
 
+        request.retryPolicy = this.retryPolicy
         queue!!.add(request)
     }
 }
