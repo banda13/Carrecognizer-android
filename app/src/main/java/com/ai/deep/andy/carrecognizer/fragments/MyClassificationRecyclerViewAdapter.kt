@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.ai.deep.andy.carrecognizer.R
+import com.ai.deep.andy.carrecognizer.dialogs.DialogFactory
 
 
 import com.ai.deep.andy.carrecognizer.fragments.ClassificationListFragment.OnListFragmentInteractionListener
@@ -22,6 +23,7 @@ import com.bumptech.glide.Glide.init
 import com.ai.deep.andy.carrecognizer.fragments.MyClassificationRecyclerViewAdapter.LoadingViewHolder
 import com.ai.deep.andy.carrecognizer.fragments.MyClassificationRecyclerViewAdapter.ItemViewHolder
 import com.ai.deep.andy.carrecognizer.utils.Logger
+import org.json.JSONObject
 
 
 class MyClassificationRecyclerViewAdapter(
@@ -101,6 +103,12 @@ class MyClassificationRecyclerViewAdapter(
         viewHolder.mResultsView.text = item?.getFormattedResults()
 
         Glide.with(mContext).load(item?.img_url).into(viewHolder.mImageView)
+
+        viewHolder.mView.setOnClickListener { view ->
+            run {
+                DialogFactory().showItemDetails("CIIIIM", mContext, JSONObject().put("Teszt", "okés"))
+            }
+        }
 
     }
 
