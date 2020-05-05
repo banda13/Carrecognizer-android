@@ -1,68 +1,59 @@
 package com.ai.deep.andy.carrecognizer.services.core
 
 import android.content.Context
+import android.util.Log
 import com.ai.deep.andy.carrecognizer.model.ClassificationItem
 import com.ai.deep.andy.carrecognizer.model.User
 import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
+import com.ai.deep.andy.carrecognizer.utils.GlobalConstants
+import com.ai.deep.andy.carrecognizer.utils.Logger
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.Response
+import com.android.volley.VolleyLog
+import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.orm.SugarRecord
 import org.json.JSONObject
-import android.util.Log
-import com.ai.deep.andy.carrecognizer.model.ClassificationItem.Companion.getItemListFromJson
-import com.ai.deep.andy.carrecognizer.utils.GlobalConstants
-import com.ai.deep.andy.carrecognizer.utils.Logger
-import com.android.volley.*
-import com.android.volley.toolbox.JsonObjectRequest
 
+class CategoryDetailsService(context: Context, callback: VolleyOnEventListener<JSONObject>) {
 
-class ListClassificationService(context: Context, callback: VolleyOnEventListener<List<ClassificationItem>>) {
-
-    var context : Context? = context
+    var context: Context? = context
     var queue: RequestQueue? = null
-    var mCallBack: VolleyOnEventListener<List<ClassificationItem>>? = callback
-    //val BASE_URL = "http://carrecognizer.northeurope.cloudapp.azure.com/core/"
+    var mCallBack: VolleyOnEventListener<JSONObject>? = callback
     val BASE_URL = "http://176.63.245.216:1235/core/"
-    var currentUser : User? = null
+    var currentUser: User? = null
 
     init {
         this.queue = Volley.newRequestQueue(context)
     }
 
-    private fun getUser() : User? {
-        //TODO cache the authenticated user!
+    private fun getUser(): User? {
         val users = SugarRecord.findAll(User::class.java)
-        if(users.hasNext()){
+        if (users.hasNext()) {
             return users.next()
         }
         return null
     }
 
-    fun getItems(page: Int){
+    fun getDetails(name: String?) {
         currentUser = getUser()
 
-        var url = BASE_URL + "classlist/"
-        if(page > 1){
-            url += "?page=$page"
-        }
-
+        val url = BASE_URL + "category/" + name
         val req = object : JsonObjectRequest(Request.Method.GET, url, null, Response.Listener<JSONObject> { response ->
             Log.d(Logger.LOGTAG, response.toString())
-            mCallBack?.onSuccess(getItemListFromJson(response))
+            mCallBack?.onSuccess(response)
         }, Response.ErrorListener { error ->
             VolleyLog.d(Logger.LOGTAG, "Error: " + error.message)
-            Log.e(Logger.LOGTAG, "Site Info Error: " + error.message)
+            Log.e(Logger.LOGTAG, "Classification details Error: " + error.message)
             mCallBack?.onFailure(error)
         }) {
             override fun getHeaders(): Map<String, String> {
                 val headers = HashMap<String, String>()
-                headers.put("Authorization", GlobalConstants.JWT_PREFIX + " " + currentUser?.jwtToken)
+                headers["Authorization"] = GlobalConstants.JWT_PREFIX + " " + currentUser?.jwtToken
                 return headers
             }
         }
         queue!!.add(req)
-    }
-
-    init {
-        this.queue = Volley.newRequestQueue(context)
     }
 }

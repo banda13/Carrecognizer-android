@@ -35,7 +35,7 @@ class ClassifyService(context: Context, callback: VolleyOnEventListener<JSONObje
         this.retryPolicy = DefaultRetryPolicy(timeout,DefaultRetryPolicy.DEFAULT_MAX_RETRIES,DefaultRetryPolicy.DEFAULT_BACKOFF_MULT)
     }
 
-    fun getUser(): User? {
+    private fun getUser(): User? {
         //TODO cache the authenticated user!
         val users = SugarRecord.findAll(User::class.java)
         if (users.hasNext()) {

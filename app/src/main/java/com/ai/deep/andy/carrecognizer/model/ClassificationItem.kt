@@ -69,4 +69,14 @@ class ClassificationItem {
 
         return builder.toString()
     }
+
+    fun getResultsList() : List<String?>{
+        val result = results?.getJSONObject(0)?.getJSONArray("_items")
+        val list : MutableList<String?> = ArrayList()
+        for (i in 0 until maxResults) {
+            val item = result?.getJSONObject(i)
+            list.add(item?.optString("name"))
+        }
+        return list
+    }
 }

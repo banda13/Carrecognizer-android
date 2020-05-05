@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import com.ai.deep.andy.carrecognizer.R
 import com.ai.deep.andy.carrecognizer.dialogs.DialogFactory
 
@@ -22,6 +23,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.Glide.init
 import com.ai.deep.andy.carrecognizer.fragments.MyClassificationRecyclerViewAdapter.LoadingViewHolder
 import com.ai.deep.andy.carrecognizer.fragments.MyClassificationRecyclerViewAdapter.ItemViewHolder
+import com.ai.deep.andy.carrecognizer.services.VolleyOnEventListener
+import com.ai.deep.andy.carrecognizer.services.core.CategoryDetailsService
 import com.ai.deep.andy.carrecognizer.utils.Logger
 import org.json.JSONObject
 
@@ -104,13 +107,25 @@ class MyClassificationRecyclerViewAdapter(
 
         Glide.with(mContext).load(item?.img_url).into(viewHolder.mImageView)
 
-        viewHolder.mView.setOnClickListener { view ->
+        viewHolder.mView.setOnClickListener {
             run {
-                DialogFactory().showItemDetails("CIIIIM", mContext, JSONObject().put("Teszt", "okés"))
+                val title = item!!.getResultsList()
+                val dialog = DialogFactory().showLoadingDialog(title[0], mContext)
+                CategoryDetailsService(mContext, object : VolleyOnEventListener<JSONObject> {
+                    override fun onSuccess(obj: JSONObject) {
+                        dialog.dismiss()
+                        DialogFactory().showItemDetails(title, mContext, obj)
+                    }
+
+                    override fun onFailure(e: Exception) {
+                        dialog.dismiss()
+                        Toast.makeText(mContext, "Sry, can't load the details for this classification, try later", Toast.LENGTH_LONG).show()
+                    }
+                }).getDetails(title[0])
             }
         }
-
     }
 
 
 }
+
