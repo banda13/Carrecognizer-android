@@ -106,6 +106,8 @@ class MyClassificationRecyclerViewAdapter(
         viewHolder.mResultsView.text = item?.getFormattedResults()
 
         Glide.with(mContext).load(item?.img_url).into(viewHolder.mImageView)
+        val img = Glide.with(mContext).download(item?.img_url)
+        img.into(viewHolder.mImageView)
 
         viewHolder.mView.setOnClickListener {
             run {
