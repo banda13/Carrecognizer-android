@@ -20,7 +20,7 @@ class LoginService {
     var queue: RequestQueue? = null
     var mCallBack: VolleyOnEventListener<JSONObject>? = null
     //val BASE_URL = "http://carrecognizer.northeurope.cloudapp.azure.com/users/"
-    val BASE_URL = "http://176.63.245.216:1235/users/"
+    val BASE_URL = "http://178.48.246.170:1235/users/"
 
     constructor(context: Context,callback: VolleyOnEventListener<JSONObject>){
         this.context = context

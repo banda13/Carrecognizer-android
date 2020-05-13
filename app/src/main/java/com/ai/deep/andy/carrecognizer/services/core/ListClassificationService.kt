@@ -21,7 +21,7 @@ class ListClassificationService(context: Context, callback: VolleyOnEventListene
     var queue: RequestQueue? = null
     var mCallBack: VolleyOnEventListener<List<ClassificationItem>>? = callback
     //val BASE_URL = "http://carrecognizer.northeurope.cloudapp.azure.com/core/"
-    val BASE_URL = "http://176.63.245.216:1235/core/"
+    val BASE_URL = "http://178.48.246.170:1235/core/"
     var currentUser : User? = null
 
     init {

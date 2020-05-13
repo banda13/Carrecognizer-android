@@ -26,7 +26,7 @@ class ClassifyService(context: Context, callback: VolleyOnEventListener<JSONObje
     private val timeout = 20000
     var mCallBack: VolleyOnEventListener<JSONObject>? = callback
     //val BASE_URL = "http://carrecognizer.northeurope.cloudapp.azure.com/core/"
-    val BASE_URL = "http://176.63.245.216:1235/core/classify/"
+    val BASE_URL = "http://178.48.246.170:1235/core/classify/"
     var currentUser: User? = null
 
     init {
