@@ -63,8 +63,12 @@ class ClassificationItem {
         }
         val result = results?.getJSONObject(0)?.getJSONArray("_items")
         for (i in 0 until maxResults) {
-            val item = result?.getJSONObject(i)
-            builder.append(item?.optString("name") + " - " + String.format("%.3f", item?.optDouble("accuracy", 0.0)) + "\n")
+            try {
+                val item = result?.getJSONObject(i)
+                builder.append(item?.optString("name") + " - " + String.format("%.3f", item?.optDouble("accuracy", 0.0)) + "\n")
+            } catch (e: Exception){
+                break
+            }
         }
 
         return builder.toString()
