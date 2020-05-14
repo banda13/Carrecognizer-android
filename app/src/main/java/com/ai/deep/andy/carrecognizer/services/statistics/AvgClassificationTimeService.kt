@@ -11,6 +11,7 @@ import com.android.volley.RequestQueue
 import com.android.volley.Response
 import com.android.volley.VolleyLog
 import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
 import com.orm.SugarRecord
 import org.json.JSONObject
 import kotlin.math.roundToInt
@@ -31,6 +32,10 @@ class AvgClassificationTimeService(context: Context, callback: VolleyOnEventList
         return null
     }
 
+    init {
+        this.queue = Volley.newRequestQueue(context)
+    }
+
     fun getAvarageUsageStatistics(){
         Log.i(Logger.LOGTAG, "Getting average classification time")
 
@@ -39,7 +44,7 @@ class AvgClassificationTimeService(context: Context, callback: VolleyOnEventList
         val url = BASE_URL + "classification_time/"
         val req = object : JsonObjectRequest(Request.Method.GET, url, null, Response.Listener<JSONObject> { response ->
             Log.d(Logger.LOGTAG, response.toString())
-            val avgTime = response.getDouble("avg_class_time").roundToInt()
+            val avgTime = response.getDouble("avg_class_time").roundToInt() * 4 * 1000 // change to ms + much slower so multiply with 4
             mCallBack?.onSuccess(avgTime)
         }, Response.ErrorListener { error ->
             VolleyLog.d(Logger.LOGTAG, "Error: " + error.message)
@@ -53,5 +58,6 @@ class AvgClassificationTimeService(context: Context, callback: VolleyOnEventList
             }
         }
         queue!!.add(req)
+
     }
 }
